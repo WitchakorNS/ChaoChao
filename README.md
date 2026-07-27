@@ -38,40 +38,50 @@ cd my-app
 npm install
 ```
 
-### 1. Configure environment variables
+### 1. Start the local database (Supabase on Docker)
 
-Create a `.env.local` file in `my-app/` (copy from the sample):
+The schema, migrations, and seed data live in `my-app/supabase/`. The demo runs
+against a **local Supabase** instance (Postgres in Docker).
+
+```bash
+# Docker Desktop must be installed AND running first.
+npx supabase start      # boots local Supabase; prints the API URL + keys
+npx supabase db reset   # applies migrations + seed.sql (demo data)
+```
+
+`supabase start` prints an **API URL**, an **anon/publishable key**, and a
+**service_role key** — you'll use these in step 2. Supabase Studio is at
+<http://127.0.0.1:54323>.
+
+> The app also runs **without** the database — if Supabase isn't up, every page
+> falls back to the built-in mock data instead of crashing. You just won't see
+> live DB reads/writes.
+
+### 2. Configure environment variables
+
+Copy the sample to `.env.local` (git-ignored — never commit it):
 
 ```bash
 cp .env.sample .env.local
 ```
 
-Then fill in your Supabase project values (found in **Project Settings → API**):
+`.env.sample` is already filled with the **standard local Supabase CLI values**
+(identical on every machine), so this works out of the box. If `supabase start`
+printed different keys, paste those in instead.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-or-anon-key
-```
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL (`http://127.0.0.1:54321` locally) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | anon/publishable key — reads (SELECT only) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server-only** key for writes (create/edit/booking/review…). No `NEXT_PUBLIC_` prefix, so it's never sent to the browser |
 
-`.env.local` holds secrets and is git-ignored — never commit it.
+> Already have a working `.env.local`? You can skip the copy — it would overwrite
+> your file. **Writes require `SUPABASE_SERVICE_ROLE_KEY`**, so make sure that
+> line is present.
 
-### 2. Set up the database
-
-The schema and seed data live in `my-app/supabase/`.
-
-**Using the Supabase CLI (local database):**
-
-```bash
-npx supabase start      # starts local Supabase (Docker required)
-npx supabase db reset   # applies migrations + seed.sql
-```
-
-**Using a cloud Supabase project instead:**
-
-```bash
-npx supabase link --project-ref <your-project-ref>
-npx supabase db push    # applies migrations to your cloud database
-```
+**Using a cloud Supabase project instead of local:** replace the URL + keys with
+the values from your project's **Settings → API**, then run
+`npx supabase link --project-ref <ref>` and `npx supabase db push`.
 
 ### 3. Start the dev server
 
@@ -92,7 +102,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Troubleshooting
 
-- **Missing Supabase env vars** — make sure `my-app/.env.local` exists and both
-  `NEXT_PUBLIC_SUPABASE_*` values are set.
+- **`cp: .env.sample: No such file`** — run the command from inside `my-app/`
+  (`cd my-app` first). On Windows PowerShell, `cp` works too; or use
+  `Copy-Item .env.sample .env.local`.
+- **Pages show mock data / writes don't save** — the local DB isn't running.
+  Start Docker Desktop, then `npx supabase start` (containers also auto-restart a
+  few seconds after Docker boots). Writes also need `SUPABASE_SERVICE_ROLE_KEY`
+  in `.env.local`.
 - **`supabase start` fails** — Docker must be installed and running.
 - **Port 3000 in use** — run `npm run dev -- -p 3001` to use another port.
