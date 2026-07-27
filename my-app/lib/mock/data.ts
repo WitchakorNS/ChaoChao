@@ -431,7 +431,7 @@ function timeline(events: [string, string, string, boolean][]) {
 export const bookings: Booking[] = [
   // Current user (renter) — confirmed, in progress
   {
-    id: "BK-20260712",
+    id: "BK-1",
     listingId: "p1",
     renterId: "u_me",
     lenderId: "u1",
@@ -457,7 +457,7 @@ export const bookings: Booking[] = [
   },
   // Current user (renter) — awaiting payment
   {
-    id: "BK-20260713",
+    id: "BK-2",
     listingId: "p5",
     renterId: "u_me",
     lenderId: "u3",
@@ -480,7 +480,7 @@ export const bookings: Booking[] = [
   },
   // Current user (renter) — due soon
   {
-    id: "BK-20260705",
+    id: "BK-3",
     listingId: "p6",
     renterId: "u_me",
     lenderId: "u2",
@@ -504,7 +504,7 @@ export const bookings: Booking[] = [
   },
   // Current user (renter) — completed, awaiting review
   {
-    id: "BK-20260620",
+    id: "BK-4",
     listingId: "p3",
     renterId: "u_me",
     lenderId: "u2",
@@ -528,7 +528,7 @@ export const bookings: Booking[] = [
   },
   // Current user as LENDER — pending request to approve (renter u4)
   {
-    id: "BK-20260714",
+    id: "BK-5",
     listingId: "p11",
     renterId: "u4",
     lenderId: "u_me",
@@ -548,7 +548,7 @@ export const bookings: Booking[] = [
   },
   // Current user as LENDER — pending request (renter u5)
   {
-    id: "BK-20260714B",
+    id: "BK-6",
     listingId: "p12",
     renterId: "u5",
     lenderId: "u_me",
@@ -568,7 +568,7 @@ export const bookings: Booking[] = [
   },
   // Lender booking — disputed (for admin demo)
   {
-    id: "BK-20260601",
+    id: "BK-7",
     listingId: "p4",
     renterId: "u5",
     lenderId: "u2",
@@ -594,7 +594,7 @@ export const bookings: Booking[] = [
 export const evidences: Evidence[] = [
   {
     id: "ev1",
-    bookingId: "BK-20260705",
+    bookingId: "BK-3",
     type: "before_pickup",
     imageSeed: "ev_a",
     note: "ตรวจสอบลำโพงก่อนรับ ไม่มีรอยขีดข่วน เปิดทดสอบเสียงปกติ",
@@ -604,7 +604,7 @@ export const evidences: Evidence[] = [
   },
   {
     id: "ev2",
-    bookingId: "BK-20260601",
+    bookingId: "BK-7",
     type: "after_return",
     imageSeed: "ev_b",
     note: "พบรอยขีดข่วนที่ตัวเครื่องหลังคืน",
@@ -631,7 +631,7 @@ export const notifications: AppNotification[] = [
     body: "คำขอเช่า “เต็นท์แคมป์ปิ้ง 4 คน” ได้รับการอนุมัติแล้ว กรุณาชำระเงิน",
     date: "2026-07-14T09:05:00",
     read: false,
-    href: "/renter/payment/BK-20260713",
+    href: "/renter/payment/BK-2",
   },
   {
     id: "n3",
@@ -640,7 +640,7 @@ export const notifications: AppNotification[] = [
     body: "“ลำโพง Bluetooth 200W” ครบกำหนดคืนพรุ่งนี้ 15 ก.ค.",
     date: "2026-07-14T08:00:00",
     read: false,
-    href: "/renter/bookings/BK-20260705",
+    href: "/renter/bookings/BK-3",
   },
   {
     id: "n4",
@@ -658,13 +658,13 @@ export const notifications: AppNotification[] = [
     body: "การเช่า “กล้อง Sony A7 III” ยืนยันเรียบร้อยแล้ว",
     date: "2026-07-13T14:15:00",
     read: true,
-    href: "/renter/bookings/BK-20260712",
+    href: "/renter/bookings/BK-1",
   },
   {
     id: "n6",
     type: "dispute",
     title: "มีข้อพิพาทใหม่",
-    body: "รายการ BK-20260601 ถูกเปิดข้อพิพาทเรื่องสภาพสินค้า",
+    body: "รายการ BK-7 ถูกเปิดข้อพิพาทเรื่องสภาพสินค้า",
     date: "2026-06-06T11:00:00",
     read: true,
     href: "/admin/disputes",
@@ -674,7 +674,7 @@ export const notifications: AppNotification[] = [
 export const chatRooms: ChatRoom[] = [
   {
     id: "chat1",
-    bookingId: "BK-20260712",
+    bookingId: "BK-1",
     participantId: "u1",
     listingId: "p1",
     messages: [
@@ -687,7 +687,7 @@ export const chatRooms: ChatRoom[] = [
   },
   {
     id: "chat2",
-    bookingId: "BK-20260705",
+    bookingId: "BK-3",
     participantId: "u2",
     listingId: "p6",
     messages: [
@@ -697,7 +697,7 @@ export const chatRooms: ChatRoom[] = [
   },
   {
     id: "chat3",
-    bookingId: "BK-20260714",
+    bookingId: "BK-5",
     participantId: "u4",
     listingId: "p11",
     messages: [
@@ -709,7 +709,7 @@ export const chatRooms: ChatRoom[] = [
 export const disputes: Dispute[] = [
   {
     id: "d1",
-    bookingId: "BK-20260601",
+    bookingId: "BK-7",
     reason: "สินค้าเสียหาย",
     detail: "ผู้ให้เช่าแจ้งว่าพบรอยขีดข่วนที่ตัวโปรเจคเตอร์หลังคืน ขอหักค่ามัดจำบางส่วน",
     openedById: "u2",
@@ -718,7 +718,7 @@ export const disputes: Dispute[] = [
   },
   {
     id: "d2",
-    bookingId: "BK-20260705",
+    bookingId: "BK-3",
     reason: "คืนล่าช้า",
     detail: "ผู้เช่าแจ้งขอเลื่อนกำหนดคืน 1 วัน อยู่ระหว่างตกลงค่าปรับ",
     openedById: "u2",

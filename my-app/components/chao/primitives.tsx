@@ -112,6 +112,14 @@ export function Rating({
   className?: string;
   size?: "sm" | "md";
 }) {
+  // Real DB listings may have no reviews yet — show a label instead of "0.0".
+  if (count === 0) {
+    return (
+      <span className={cn("text-xs text-muted-foreground", className)}>
+        ยังไม่มีรีวิว
+      </span>
+    );
+  }
   return (
     <span
       className={cn(

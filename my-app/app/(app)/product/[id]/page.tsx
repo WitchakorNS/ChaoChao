@@ -7,12 +7,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import {
-  getCategory,
-  getListing,
+  getListingById,
+  getListings,
   getReviewsForListing,
-  getUser,
-  listings,
-} from "@/lib/mock/data";
+  getUserById,
+  getAllUsers,
+} from "@/lib/db";
+import { categoryIcon, categoryName } from "@/lib/categories";
 import { formatDate, thb } from "@/lib/format";
 import {
   Avatar,
@@ -31,14 +32,22 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const listing = getListing(id);
+  const listing = await getListingById(id);
   if (!listing) notFound();
 
-  const category = getCategory(listing.categoryId);
-  const owner = getUser(listing.ownerId);
-  const reviews = getReviewsForListing(listing.id);
-  const related = listings
-    .filter((l) => l.categoryId === listing.categoryId && l.id !== listing.id)
+  const [owner, reviews, allListings, users] = await Promise.all([
+    getUserById(listing.ownerId),
+    getReviewsForListing(listing.id),
+    getListings(),
+    getAllUsers(),
+  ]);
+  const usersById = new Map(users.map((u) => [u.id, u]));
+  const category = {
+    name: categoryName(listing.categorySlug),
+    icon: listing.categoryIcon ?? categoryIcon(listing.categorySlug),
+  };
+  const related = allListings
+    .filter((l) => l.categorySlug === listing.categorySlug && l.id !== listing.id)
     .slice(0, 4);
 
   return (
@@ -145,7 +154,7 @@ export default async function ProductDetailPage({
             ) : (
               <div className="space-y-3">
                 {reviews.map((r) => {
-                  const author = getUser(r.authorId);
+                  const author = usersById.get(r.authorId);
                   return (
                     <div key={r.id} className="rounded-xl border bg-card p-4 shadow-sm">
                       <div className="flex items-center gap-3">

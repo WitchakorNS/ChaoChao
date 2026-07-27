@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -51,10 +52,20 @@ interface DemoState {
 
 const DemoContext = createContext<DemoState | null>(null);
 
-export function DemoStoreProvider({ children }: { children: React.ReactNode }) {
+export function DemoStoreProvider({
+  children,
+  initialBookings,
+}: {
+  children: React.ReactNode;
+  // Hydrated from the DB by the root layout; falls back to mock seed data.
+  initialBookings?: Booking[];
+}) {
   const [persona, setPersona] = useState<Persona>("renter");
   const [bookings, setBookings] = useState<Booking[]>(() =>
-    seedBookings.map((b) => ({ ...b, timeline: b.timeline.map((t) => ({ ...t })) })),
+    (initialBookings && initialBookings.length
+      ? initialBookings
+      : seedBookings
+    ).map((b) => ({ ...b, timeline: b.timeline.map((t) => ({ ...t })) })),
   );
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     seedNotifications.map((n) => ({ ...n })),
@@ -63,6 +74,21 @@ export function DemoStoreProvider({ children }: { children: React.ReactNode }) {
     seedChats.map((c) => ({ ...c, messages: [...c.messages] })),
   );
   const [saved, setSaved] = useState<string[]>(["p3", "p5"]);
+
+  // After a write the pages call router.refresh(), which re-runs the root
+  // layout and hands us fresh rows from the DB. Re-sync so the store reflects
+  // what was actually persisted (the DB is the source of truth).
+  const bookingsKey = JSON.stringify(initialBookings ?? []);
+  useEffect(() => {
+    if (!initialBookings || !initialBookings.length) return;
+    setBookings(
+      initialBookings.map((b) => ({
+        ...b,
+        timeline: b.timeline.map((t) => ({ ...t })),
+      })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingsKey]);
 
   const toggleSaved = useCallback((listingId: string) => {
     setSaved((prev) =>

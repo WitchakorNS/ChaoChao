@@ -17,8 +17,9 @@ export function ProductCard({
   layout?: "grid" | "list";
 }) {
   const { isSaved, toggleSaved } = useDemo();
-  const category = getCategory(listing.categoryId);
-  const owner = getUser(listing.ownerId);
+  const icon = listing.categoryIcon ?? getCategory(listing.categoryId)?.icon;
+  const ownerVerified =
+    listing.ownerVerified ?? getUser(listing.ownerId)?.kyc === "verified";
   const saved = isSaved(listing.id);
 
   const statusChip =
@@ -55,7 +56,7 @@ export function ProductCard({
         <div className="relative">
           <PlaceholderImage
             seed={listing.imageSeeds[0]}
-            iconName={category?.icon}
+            iconName={icon}
             className="h-24 w-24 shrink-0"
           />
         </div>
@@ -95,7 +96,7 @@ export function ProductCard({
       <div className="relative">
         <PlaceholderImage
           seed={listing.imageSeeds[0]}
-          iconName={category?.icon}
+          iconName={icon}
           className="aspect-[4/3] w-full"
           rounded="rounded-none"
         />
@@ -112,7 +113,7 @@ export function ProductCard({
         </div>
         <div className="mt-2 flex items-center justify-between">
           <Rating value={listing.rating} count={listing.reviewCount} />
-          {owner?.kyc === "verified" && (
+          {ownerVerified && (
             <StatusChip tone="info" dot={false} className="px-2">
               ยืนยันตัวตน
             </StatusChip>

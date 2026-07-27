@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CURRENT_USER_ID } from "@/lib/mock/data";
 import {
   BadgeCheck,
   IdCard,
@@ -16,13 +18,35 @@ import { StatusChip } from "@/components/chao/primitives";
 type Status = "unverified" | "pending" | "verified";
 
 export default function KycPage() {
+  const router = useRouter();
   const [idCard, setIdCard] = useState(false);
   const [selfie, setSelfie] = useState(false);
   const [status, setStatus] = useState<Status>("unverified");
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = () => {
+  // Persists the verification state to user_account.current_state_id.
+  const submit = async () => {
+    setError(null);
     setStatus("pending");
-    setTimeout(() => setStatus("verified"), 1800);
+    try {
+      await patchKyc("pending");
+      await new Promise((r) => setTimeout(r, 1200));
+      await patchKyc("verified");
+      router.refresh();
+      setStatus("verified");
+    } catch (e) {
+      setError((e as Error).message);
+      setStatus("unverified");
+    }
+  };
+
+  const patchKyc = async (kyc: Status) => {
+    const res = await fetch(`/api/users/${CURRENT_USER_ID}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kyc }),
+    });
+    if (!res.ok) throw new Error("อัปเดตสถานะยืนยันตัวตนไม่สำเร็จ");
   };
 
   const statusChip =
@@ -92,6 +116,7 @@ export default function KycPage() {
             {status === "pending" && <Loader2 className="h-4 w-4 animate-spin" />}
             {status === "pending" ? "กำลังตรวจสอบ..." : "ส่งข้อมูลเพื่อยืนยันตัวตน"}
           </button>
+          {error && <p className="text-center text-sm text-danger">{error}</p>}
         </div>
       )}
     </div>

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Check, Inbox, MessageSquare, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, Inbox, Loader2, MessageSquare, X } from "lucide-react";
 import { useDemo } from "@/lib/store";
 import { getListing, getUser, getCategory } from "@/lib/mock/data";
 import { bookingStatusMeta, formatDate, thb } from "@/lib/format";
@@ -15,9 +17,32 @@ import {
 
 export default function RequestsPage() {
   const { bookings, userId, approveBooking, rejectBooking } = useDemo();
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
   const requests = bookings
     .filter((b) => b.lenderId === userId)
     .sort((a) => (a.status === "pending" ? -1 : 1));
+
+  // Persist to the DB, then optimistically update the store and refresh so the
+  // server re-reads the real rows.
+  const act = async (id: string, action: "approve" | "reject") => {
+    setBusy(id);
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) throw new Error("ไม่สำเร็จ");
+      if (action === "approve") approveBooking(id);
+      else rejectBooking(id);
+      router.refresh();
+    } catch {
+      // leave the request in place if the write failed
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div>
@@ -93,14 +118,21 @@ export default function RequestsPage() {
                   {pending ? (
                     <>
                       <button
-                        onClick={() => approveBooking(b.id)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-success text-sm font-semibold text-success-foreground transition hover:brightness-105"
+                        onClick={() => act(b.id, "approve")}
+                        disabled={busy === b.id}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-success text-sm font-semibold text-success-foreground transition hover:brightness-105 disabled:opacity-60"
                       >
-                        <Check className="h-4 w-4" /> อนุมัติ
+                        {busy === b.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}{" "}
+                        อนุมัติ
                       </button>
                       <button
-                        onClick={() => rejectBooking(b.id)}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-danger/40 text-sm font-semibold text-danger transition hover:bg-danger/5"
+                        onClick={() => act(b.id, "reject")}
+                        disabled={busy === b.id}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-danger/40 text-sm font-semibold text-danger transition hover:bg-danger/5 disabled:opacity-60"
                       >
                         <X className="h-4 w-4" /> ปฏิเสธ
                       </button>

@@ -15,11 +15,17 @@ export function BookingCard({
   counterpartyRole?: "lender" | "renter";
 }) {
   const listing = getListing(booking.listingId);
-  const category = listing ? getCategory(listing.categoryId) : undefined;
   const meta = bookingStatusMeta[booking.status];
-  const counterparty = getUser(
-    counterpartyRole === "lender" ? booking.lenderId : booking.renterId,
-  );
+  const title = booking.listingTitle ?? listing?.title;
+  const imageSeed =
+    booking.listingImageSeed ?? listing?.imageSeeds[0] ?? booking.id;
+  const categoryIcon =
+    booking.listingCategoryIcon ??
+    (listing ? getCategory(listing.categoryId)?.icon : undefined);
+  const counterpartyName =
+    counterpartyRole === "lender"
+      ? (booking.lenderName ?? getUser(booking.lenderId)?.name)
+      : (booking.renterName ?? getUser(booking.renterId)?.name);
   const link =
     href ??
     (counterpartyRole === "lender"
@@ -32,8 +38,8 @@ export function BookingCard({
       className="group flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm transition hover:border-accent hover:shadow-md"
     >
       <PlaceholderImage
-        seed={listing?.imageSeeds[0] ?? booking.id}
-        iconName={category?.icon}
+        seed={imageSeed}
+        iconName={categoryIcon}
         className="h-16 w-16 shrink-0"
       />
       <div className="min-w-0 flex-1">
@@ -43,16 +49,16 @@ export function BookingCard({
           </span>
           <StatusChip tone={meta.tone}>{meta.label}</StatusChip>
         </div>
-        <h3 className="mt-0.5 line-clamp-1 font-medium">{listing?.title}</h3>
+        <h3 className="mt-0.5 line-clamp-1 font-medium">{title}</h3>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="h-3 w-3" />
             {formatDate(booking.startDate)} – {formatDate(booking.endDate)}
           </span>
-          {counterparty && (
+          {counterpartyName && (
             <span>
               {counterpartyRole === "lender" ? "ผู้ให้เช่า" : "ผู้เช่า"}:{" "}
-              {counterparty.name}
+              {counterpartyName}
             </span>
           )}
           <span className="font-medium text-foreground">

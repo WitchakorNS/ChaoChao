@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LayoutGrid, List, SlidersHorizontal, Star, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { categories, listings } from "@/lib/mock/data";
+import { categories } from "@/lib/categories";
+import type { Listing } from "@/lib/mock/types";
 import { ProductCard } from "./product-card";
 import { CategoryIcon, EmptyState } from "./primitives";
 import { PackageSearch } from "lucide-react";
@@ -19,7 +20,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 const PRICE_MAX = 1000;
 
-export function ExploreClient() {
+export function ExploreClient({ listings }: { listings: Listing[] }) {
   const params = useSearchParams();
   const initialQ = params.get("q") ?? "";
   const initialCat = params.get("category") ?? "";
@@ -50,7 +51,7 @@ export function ExploreClient() {
       return b.rating - a.rating;
     });
     return r;
-  }, [q, catObj, maxPrice, minRating, availableOnly, sort]);
+  }, [listings, q, catObj, maxPrice, minRating, availableOnly, sort]);
 
   const resetFilters = () => {
     setCategory("");

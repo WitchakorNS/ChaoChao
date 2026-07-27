@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -20,6 +20,7 @@ type Phase = "idle" | "checking" | "success";
 export default function PaymentPage() {
   const { id } = useParams<{ id: string }>();
   const { bookings, payBooking } = useDemo();
+  const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idle");
   const booking = bookings.find((b) => b.id === id);
 
@@ -32,12 +33,21 @@ export default function PaymentPage() {
   const category = listing ? getCategory(listing.categoryId) : undefined;
   const lender = getUser(booking.lenderId);
 
-  const pay = () => {
+  const pay = async () => {
     setPhase("checking");
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/bookings/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "pay" }),
+      });
+      if (!res.ok) throw new Error("ชำระเงินไม่สำเร็จ");
       payBooking(booking.id);
+      router.refresh();
       setPhase("success");
-    }, 1600);
+    } catch {
+      setPhase("idle");
+    }
   };
 
   const chip =

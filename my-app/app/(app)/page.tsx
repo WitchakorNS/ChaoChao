@@ -9,7 +9,8 @@ import {
   Wallet,
   Camera as CameraIcon,
 } from "lucide-react";
-import { categories, listings } from "@/lib/mock/data";
+import { categories } from "@/lib/categories";
+import { getListings } from "@/lib/db";
 import { ProductCard } from "@/components/chao/product-card";
 import { CategoryIcon, SectionHeading } from "@/components/chao/primitives";
 import { HomeSearch } from "@/components/chao/home-search";
@@ -29,8 +30,9 @@ const trust = [
   { icon: MessagesSquare, title: "แชทในแอป", desc: "คุยกับคู่สัญญาได้ทันที" },
 ];
 
-export default function HomePage() {
-  const featured = listings.filter((l) => l.featured);
+export default async function HomePage() {
+  const all = await getListings();
+  const featured = all.slice(0, 8);
 
   return (
     <div className="space-y-12">

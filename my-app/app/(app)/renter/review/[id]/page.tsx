@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { ArrowLeft, CheckCircle2, ImagePlus, Star } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, CheckCircle2, ImagePlus, Loader2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDemo } from "@/lib/store";
 import { getListing, getUser, getCategory } from "@/lib/mock/data";
@@ -11,6 +11,7 @@ import { PlaceholderImage } from "@/components/chao/primitives";
 
 export default function ReviewPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { bookings } = useDemo();
   const booking = bookings.find((b) => b.id === id);
   const [productRating, setProductRating] = useState(5);
@@ -18,6 +19,33 @@ export default function ReviewPage() {
   const [comment, setComment] = useState("");
   const [photos, setPhotos] = useState(0);
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitReview = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: id,
+          rating: productRating,
+          comment,
+          imageSeeds: Array.from({ length: photos }, (_, i) => `rvp${id}${i}`),
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "ส่งรีวิวไม่สำเร็จ");
+      router.refresh();
+      setDone(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!booking) {
     return <div className="py-20 text-center text-muted-foreground">ไม่พบรายการเช่า</div>;
@@ -108,10 +136,14 @@ export default function ReviewPage() {
         </div>
       </div>
 
+      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+
       <button
-        onClick={() => setDone(true)}
-        className="mt-4 h-12 w-full rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+        onClick={submitReview}
+        disabled={submitting}
+        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-70"
       >
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         ส่งรีวิว
       </button>
     </div>

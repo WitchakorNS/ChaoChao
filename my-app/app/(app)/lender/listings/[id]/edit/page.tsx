@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getListing } from "@/lib/mock/data";
+import { getListingById } from "@/lib/db";
 import { ListingForm } from "@/components/chao/listing-form";
 
 export default async function EditListingPage({
@@ -8,7 +8,7 @@ export default async function EditListingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const listing = getListing(id);
+  const listing = await getListingById(id);
   if (!listing) notFound();
   return <ListingForm existing={listing} />;
 }

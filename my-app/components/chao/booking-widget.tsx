@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarCheck, CheckCircle2, Heart, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Heart,
+  Loader2,
+  MessageSquare,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { thb } from "@/lib/format";
 import { useDemo } from "@/lib/store";
@@ -16,6 +23,35 @@ export function BookingWidget({ listing }: { listing: Listing }) {
   const [start, setStart] = useState("2026-07-16");
   const [end, setEnd] = useState("2026-07-19");
   const [submitted, setSubmitted] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const submit = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listingId: listing.id,
+          startDate: start,
+          endDate: end,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "ส่งคำขอไม่สำเร็จ");
+      setBookingId(body.id ?? null);
+      router.refresh();
+      setSubmitted(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const days = useMemo(() => {
     const s = new Date(start).getTime();
@@ -38,10 +74,15 @@ export function BookingWidget({ listing }: { listing: Listing }) {
           <p className="mt-1 text-sm text-muted-foreground">
             รอผู้ให้เช่าอนุมัติคำขอของคุณ เราจะแจ้งเตือนเมื่อมีความคืบหน้า
           </p>
+          {bookingId && (
+            <p className="mt-2 font-mono text-xs text-muted-foreground">
+              {bookingId}
+            </p>
+          )}
         </div>
         <div className="mt-5 space-y-2">
           <Link
-            href="/renter/bookings"
+            href={bookingId ? `/renter/bookings/${bookingId}` : "/renter/bookings"}
             className="flex h-11 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
           >
             ดูรายการเช่าของฉัน
@@ -105,22 +146,29 @@ export function BookingWidget({ listing }: { listing: Listing }) {
       </div>
 
       <button
-        disabled={!valid}
-        onClick={() => setSubmitted(true)}
+        disabled={!valid || submitting}
+        onClick={submit}
         className={cn(
           "mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold text-primary-foreground transition",
           valid
-            ? "bg-primary hover:bg-primary/90"
+            ? "bg-primary hover:bg-primary/90 disabled:opacity-70"
             : "cursor-not-allowed bg-muted text-muted-foreground",
         )}
       >
-        <CalendarCheck className="h-5 w-5" />
-        ส่งคำขอเช่า
+        {submitting ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <CalendarCheck className="h-5 w-5" />
+        )}
+        {submitting ? "กำลังส่งคำขอ..." : "ส่งคำขอเช่า"}
       </button>
       {!valid && (
         <p className="mt-1.5 text-center text-xs text-danger">
           กรุณาเลือกช่วงวันที่ให้ถูกต้อง
         </p>
+      )}
+      {error && (
+        <p className="mt-1.5 text-center text-xs text-danger">{error}</p>
       )}
 
       <div className="mt-2 grid grid-cols-2 gap-2">

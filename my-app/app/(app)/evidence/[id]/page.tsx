@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CheckCircle2,
   Clock,
   ImagePlus,
+  Loader2,
   MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ const TYPES: EvidenceType[] = [
 
 export default function EvidencePage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { bookings } = useDemo();
   const booking = bookings.find((b) => b.id === id);
   const listing = booking ? getListing(booking.listingId) : undefined;
@@ -34,6 +36,35 @@ export default function EvidencePage() {
   const [photos, setPhotos] = useState(1);
   const [note, setNote] = useState("");
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitEvidence = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/evidence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: id,
+          type,
+          imageSeeds: Array.from(
+            { length: Math.max(photos, 1) },
+            (_, i) => `ev${id}${type}${i}`,
+          ),
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "อัปโหลดไม่สำเร็จ");
+      router.refresh();
+      setDone(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const now = new Date().toLocaleString("th-TH", {
     day: "numeric",
@@ -143,10 +174,14 @@ export default function EvidencePage() {
         </div>
       </div>
 
+      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+
       <button
-        onClick={() => setDone(true)}
-        className="mt-4 h-12 w-full rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+        onClick={submitEvidence}
+        disabled={submitting}
+        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-70"
       >
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         ยืนยันการอัปโหลด
       </button>
     </div>

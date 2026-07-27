@@ -7,18 +7,20 @@ import {
   ImageIcon,
 } from "lucide-react";
 import {
-  bookings,
-  disputes,
-  evidences,
-  users,
-  getListing,
-  getUser,
-} from "@/lib/mock/data";
+  getAdminSummary,
+  getAdminRentals,
+  getDisputes,
+} from "@/lib/db";
 import { bookingStatusMeta, formatDate, thb } from "@/lib/format";
 import { StatCard } from "@/components/chao/stat-card";
 import { SectionHeading, StatusChip } from "@/components/chao/primitives";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const [summary, bookings, disputes] = await Promise.all([
+    getAdminSummary(),
+    getAdminRentals(),
+    getDisputes(),
+  ]);
   const openDisputes = disputes.filter((d) => d.status !== "resolved");
 
   return (
@@ -31,10 +33,10 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="ผู้ใช้ทั้งหมด" value={users.length} icon={Users} tone="info" />
-        <StatCard label="รายการเช่า" value={bookings.length} icon={ClipboardList} tone="success" href="/admin/rentals" />
-        <StatCard label="ข้อพิพาท" value={disputes.length} icon={ShieldAlert} tone="danger" href="/admin/disputes" />
-        <StatCard label="รอตรวจหลักฐาน" value={evidences.length} icon={ImageIcon} tone="warning" href="/admin/evidence" />
+        <StatCard label="ผู้ใช้ทั้งหมด" value={summary.users} icon={Users} tone="info" />
+        <StatCard label="รายการเช่า" value={summary.rentals} icon={ClipboardList} tone="success" href="/admin/rentals" />
+        <StatCard label="ข้อพิพาท" value={summary.disputes} icon={ShieldAlert} tone="danger" href="/admin/disputes" />
+        <StatCard label="รอตรวจหลักฐาน" value={summary.pendingEvidence} icon={ImageIcon} tone="warning" href="/admin/evidence" />
       </div>
 
       {/* Recent rentals */}
@@ -61,14 +63,12 @@ export default function AdminDashboard() {
               </thead>
               <tbody className="divide-y">
                 {bookings.slice(0, 5).map((b) => {
-                  const listing = getListing(b.listingId);
-                  const renter = getUser(b.renterId);
                   const meta = bookingStatusMeta[b.status];
                   return (
                     <tr key={b.id} className="hover:bg-muted/30">
                       <Td className="font-mono text-xs">{b.id}</Td>
-                      <Td className="max-w-40 truncate">{listing?.title}</Td>
-                      <Td>{renter?.name}</Td>
+                      <Td className="max-w-40 truncate">{b.listingTitle}</Td>
+                      <Td>{b.renterName}</Td>
                       <Td>
                         <StatusChip tone={meta.tone}>{meta.label}</StatusChip>
                       </Td>

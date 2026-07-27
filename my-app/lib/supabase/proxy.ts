@@ -47,13 +47,11 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // CHAOCHAO demo note: the app uses a mock login (not Supabase Auth), so setting
+  // the local Supabase env vars must NOT force every page behind auth. Only the
+  // leftover Supabase starter area (`/protected`) is gated here; all CHAOCHAO
+  // routes stay publicly reachable.
+  if (request.nextUrl.pathname.startsWith("/protected") && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

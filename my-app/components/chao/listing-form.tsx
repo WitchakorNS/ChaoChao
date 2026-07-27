@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ImagePlus, Save, X } from "lucide-react";
+import { CheckCircle2, ImagePlus, Loader2, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { categories } from "@/lib/mock/data";
+import { categories } from "@/lib/categories";
 import { PlaceholderImage } from "./primitives";
 import type { Listing } from "@/lib/mock/types";
 
@@ -25,6 +25,8 @@ export function ListingForm({ existing }: { existing?: Listing }) {
   const [photos, setPhotos] = useState(existing?.imageSeeds.length ?? 0);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<null | "draft" | "published">(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const errors = {
     title: !title.trim(),
@@ -34,10 +36,53 @@ export function ListingForm({ existing }: { existing?: Listing }) {
   };
   const hasErrors = Object.values(errors).some(Boolean);
 
-  const submit = (kind: "draft" | "published") => {
+  const submit = async (kind: "draft" | "published") => {
     setTouched(true);
+    setError(null);
     if (kind === "published" && hasErrors) return;
-    setSaved(kind);
+    if (!title.trim() || !categoryId) {
+      setError("กรุณากรอกชื่ออุปกรณ์และเลือกหมวดหมู่ก่อนบันทึก");
+      return;
+    }
+
+    const payload = {
+      title,
+      categorySlug:
+        categories.find((c) => c.id === categoryId)?.slug ?? "camera",
+      description,
+      pricePerDay: Number(price) || 0,
+      deposit: Number(deposit) || 0,
+      availableFrom,
+      pickupLocation: pickup,
+      returnLocation: dropoff,
+      imageSeeds: Array.from(
+        { length: Math.max(photos, 1) },
+        (_, i) => `${existing?.id ?? title}-${i}`,
+      ),
+      publish: kind === "published",
+    };
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(
+        existing ? `/api/listings/${existing.id}` : "/api/listings",
+        {
+          method: existing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "บันทึกไม่สำเร็จ");
+      }
+      router.refresh();
+      setSaved(kind);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (saved) {
@@ -209,17 +254,21 @@ export function ListingForm({ existing }: { existing?: Listing }) {
           กรุณากรอกข้อมูลที่จำเป็น (มีเครื่องหมาย *) ให้ครบถ้วน
         </p>
       )}
+      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <button
           onClick={() => submit("published")}
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+          disabled={submitting}
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-70"
         >
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {existing ? "บันทึกการแก้ไข" : "เผยแพร่ประกาศ"}
         </button>
         <button
           onClick={() => submit("draft")}
-          className="flex h-12 items-center justify-center gap-2 rounded-full border px-6 text-sm font-semibold transition hover:bg-muted"
+          disabled={submitting}
+          className="flex h-12 items-center justify-center gap-2 rounded-full border px-6 text-sm font-semibold transition hover:bg-muted disabled:opacity-70"
         >
           <Save className="h-4 w-4" /> บันทึกฉบับร่าง
         </button>

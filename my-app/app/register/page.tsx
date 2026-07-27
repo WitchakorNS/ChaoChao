@@ -19,11 +19,33 @@ export default function RegisterPage() {
   const router = useRouter();
   const [role, setRole] = useState<Role>("both");
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  // Creates the account row in the DB. NOTE: the password field is never sent
+  // to the server — this demo does not handle real credentials.
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    if (!name.trim() || !email.trim()) {
+      setError("กรุณากรอกชื่อและอีเมล");
+      return;
+    }
     setLoading(true);
-    setTimeout(() => router.push("/kyc"), 700);
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, role }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "สมัครสมาชิกไม่สำเร็จ");
+      router.push("/kyc");
+    } catch (e) {
+      setError((e as Error).message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,8 +61,19 @@ export default function RegisterPage() {
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
-            <Input label="ชื่อ-นามสกุล" placeholder="ชื่อ นามสกุล" />
-            <Input label="อีเมล" type="email" placeholder="you@email.com" />
+            <Input
+              label="ชื่อ-นามสกุล"
+              placeholder="ชื่อ นามสกุล"
+              value={name}
+              onChange={setName}
+            />
+            <Input
+              label="อีเมล"
+              type="email"
+              placeholder="you@email.com"
+              value={email}
+              onChange={setEmail}
+            />
             <Input label="เบอร์โทรศัพท์" type="tel" placeholder="08x-xxx-xxxx" />
             <Input label="รหัสผ่าน" type="password" placeholder="อย่างน้อย 8 ตัวอักษร" />
 
@@ -68,6 +101,8 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {error && <p className="text-sm text-danger">{error}</p>}
+
             <button
               type="submit"
               disabled={loading}
@@ -94,10 +129,14 @@ function Input({
   label,
   type = "text",
   placeholder,
+  value,
+  onChange,
 }: {
   label: string;
   type?: string;
   placeholder?: string;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
   return (
     <div>
@@ -105,6 +144,9 @@ function Input({
       <input
         type={type}
         placeholder={placeholder}
+        {...(onChange
+          ? { value: value ?? "", onChange: (e) => onChange(e.target.value) }
+          : {})}
         className="h-11 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-ring/30"
       />
     </div>

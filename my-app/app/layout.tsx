@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { DemoStoreProvider } from "@/lib/store";
+import { getBookingsForUser } from "@/lib/db";
+import { CURRENT_USER_ID } from "@/lib/mock/data";
+import type { Booking } from "@/lib/mock/types";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -14,11 +17,20 @@ export const metadata: Metadata = {
     "CHAOCHAO เช่าและปล่อยเช่าอุปกรณ์อย่างมั่นใจ ยืนยันตัวตน มัดจำ หลักฐานรูปภาพ และรีวิว",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Hydrate the client store with the demo user's real bookings from the DB.
+  // Falls back to mock data if the local Supabase isn't running.
+  let initialBookings: Booking[] | undefined;
+  try {
+    initialBookings = await getBookingsForUser(CURRENT_USER_ID);
+  } catch {
+    initialBookings = undefined;
+  }
+
   return (
     <html lang="th" suppressHydrationWarning>
       <body className="font-sans antialiased">
@@ -28,7 +40,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <DemoStoreProvider>{children}</DemoStoreProvider>
+          <DemoStoreProvider initialBookings={initialBookings}>
+            {children}
+          </DemoStoreProvider>
         </ThemeProvider>
       </body>
     </html>

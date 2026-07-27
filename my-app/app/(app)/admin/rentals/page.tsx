@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { bookings, getListing, getUser } from "@/lib/mock/data";
+import { getAdminRentals } from "@/lib/db";
 import { bookingStatusMeta, formatDate, thb } from "@/lib/format";
 import { StatusChip } from "@/components/chao/primitives";
 
-export default function AdminRentalsPage() {
+export default async function AdminRentalsPage() {
+  const bookings = await getAdminRentals();
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight">รายการเช่าทั้งหมด</h1>
@@ -28,16 +29,13 @@ export default function AdminRentalsPage() {
             </thead>
             <tbody className="divide-y">
               {bookings.map((b) => {
-                const listing = getListing(b.listingId);
-                const renter = getUser(b.renterId);
-                const lender = getUser(b.lenderId);
                 const meta = bookingStatusMeta[b.status];
                 return (
                   <tr key={b.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-mono text-xs">{b.id}</td>
-                    <td className="max-w-40 truncate px-4 py-3">{listing?.title}</td>
-                    <td className="px-4 py-3">{renter?.name}</td>
-                    <td className="px-4 py-3">{lender?.name}</td>
+                    <td className="max-w-40 truncate px-4 py-3">{b.listingTitle}</td>
+                    <td className="px-4 py-3">{b.renterName}</td>
+                    <td className="px-4 py-3">{b.lenderName}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
                       {formatDate(b.startDate)} – {formatDate(b.endDate)}
                     </td>

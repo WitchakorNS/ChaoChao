@@ -46,6 +46,12 @@ export interface Listing {
   condition: string;
   terms: string[];
   featured?: boolean;
+  // Optional enrichment supplied by the DB layer so client cards don't need to
+  // look up related mock records. Falls back to mock lookups when absent.
+  categorySlug?: string;
+  categoryIcon?: string;
+  ownerName?: string;
+  ownerVerified?: boolean;
 }
 
 export interface Review {
@@ -110,6 +116,12 @@ export interface Booking {
   createdAt: string; // ISO
   timeline: TimelineEvent[];
   reviewed?: boolean;
+  // Optional enrichment from the DB layer (see Listing).
+  listingTitle?: string;
+  listingImageSeed?: string;
+  listingCategoryIcon?: string;
+  lenderName?: string;
+  renterName?: string;
 }
 
 export type NotificationType =
