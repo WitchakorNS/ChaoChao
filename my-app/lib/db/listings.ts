@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/mock/types";
 import { mapListing, type ItemRow } from "./mappers";
 import { itemNum, userNum } from "./ids";
+import { fallbackListings } from "./fallback";
 
 const ITEM_SELECT = `
   item_id, owner_id, item_name, item_description, price, deposit, category, created_at,
@@ -35,45 +36,59 @@ export async function getRatingsMap(): Promise<Map<number, RatingAgg>> {
 
 // Public catalog: hides Draft/Removed/Unavailable items.
 export async function getListings(): Promise<Listing[]> {
-  const supabase = await createClient();
-  const [{ data, error }, ratings] = await Promise.all([
-    supabase.from("item").select(ITEM_SELECT).order("item_id"),
-    getRatingsMap(),
-  ]);
-  if (error) throw error;
-  return (data as unknown as ItemRow[])
-    .map((row) => mapListing(row, ratings.get(row.item_id)))
-    .filter((l) => l.status === "available" || l.status === "booked")
-    .sort((a, b) => b.rating - a.rating);
+  try {
+    const supabase = await createClient();
+    const [{ data, error }, ratings] = await Promise.all([
+      supabase.from("item").select(ITEM_SELECT).order("item_id"),
+      getRatingsMap(),
+    ]);
+    if (error) throw error;
+    return (data as unknown as ItemRow[])
+      .map((row) => mapListing(row, ratings.get(row.item_id)))
+      .filter((l) => l.status === "available" || l.status === "booked")
+      .sort((a, b) => b.rating - a.rating);
+  } catch {
+    return fallbackListings()
+      .filter((l) => l.status === "available" || l.status === "booked")
+      .sort((a, b) => b.rating - a.rating);
+  }
 }
 
 // Owner view: keeps every status (available / booked / closed).
 export async function getListingsByOwner(ownerId: string): Promise<Listing[]> {
-  const supabase = await createClient();
-  const [{ data, error }, ratings] = await Promise.all([
-    supabase
-      .from("item")
-      .select(ITEM_SELECT)
-      .eq("owner_id", userNum(ownerId))
-      // Postgres gives no ordering guarantee, and an UPDATE can move a row —
-      // without this the owner's list reshuffles after every edit/toggle.
-      .order("item_id"),
-    getRatingsMap(),
-  ]);
-  if (error) throw error;
-  return (data as unknown as ItemRow[]).map((row) =>
-    mapListing(row, ratings.get(row.item_id)),
-  );
+  try {
+    const supabase = await createClient();
+    const [{ data, error }, ratings] = await Promise.all([
+      supabase
+        .from("item")
+        .select(ITEM_SELECT)
+        .eq("owner_id", userNum(ownerId))
+        // Postgres gives no ordering guarantee, and an UPDATE can move a row —
+        // without this the owner's list reshuffles after every edit/toggle.
+        .order("item_id"),
+      getRatingsMap(),
+    ]);
+    if (error) throw error;
+    return (data as unknown as ItemRow[]).map((row) =>
+      mapListing(row, ratings.get(row.item_id)),
+    );
+  } catch {
+    return fallbackListings().filter((l) => l.ownerId === ownerId);
+  }
 }
 
 export async function getListingById(id: string): Promise<Listing | null> {
-  const supabase = await createClient();
-  const [{ data, error }, ratings] = await Promise.all([
-    supabase.from("item").select(ITEM_SELECT).eq("item_id", itemNum(id)).maybeSingle(),
-    getRatingsMap(),
-  ]);
-  if (error) throw error;
-  if (!data) return null;
-  const row = data as unknown as ItemRow;
-  return mapListing(row, ratings.get(row.item_id));
+  try {
+    const supabase = await createClient();
+    const [{ data, error }, ratings] = await Promise.all([
+      supabase.from("item").select(ITEM_SELECT).eq("item_id", itemNum(id)).maybeSingle(),
+      getRatingsMap(),
+    ]);
+    if (error) throw error;
+    if (!data) return null;
+    const row = data as unknown as ItemRow;
+    return mapListing(row, ratings.get(row.item_id));
+  } catch {
+    return fallbackListings().find((l) => l.id === id) ?? null;
+  }
 }

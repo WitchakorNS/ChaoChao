@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
+import Script from "next/script";
+import { ThemeProvider, THEME_SCRIPT } from "@/components/theme-provider";
 import { DemoStoreProvider } from "@/lib/store";
 import { getBookingsForUser } from "@/lib/db";
 import { CURRENT_USER_ID } from "@/lib/mock/data";
@@ -34,12 +35,14 @@ export default async function RootLayout({
   return (
     <html lang="th" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
+        {/* No-flash theme init. Rendered via next/script `beforeInteractive`,
+            which Next injects into the initial HTML before hydration — so no
+            raw <script> is emitted by a React component (avoids React 19.2's
+            "script tag while rendering" warning). See theme-provider.tsx. */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_SCRIPT}
+        </Script>
+        <ThemeProvider>
           <DemoStoreProvider initialBookings={initialBookings}>
             {children}
           </DemoStoreProvider>

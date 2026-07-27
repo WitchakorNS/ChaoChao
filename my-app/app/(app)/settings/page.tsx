@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { Bell, Globe, Moon, ShieldCheck, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { currentUser } from "@/lib/store";

@@ -18,18 +18,28 @@ async function count(table: string): Promise<number> {
 }
 
 export async function getAdminSummary(): Promise<AdminSummary> {
-  const [users, rentals, evidence, bookings] = await Promise.all([
-    count("user_account"),
-    count("rental_order"),
-    count("rental_evidence"),
-    getAllBookings(),
-  ]);
-  return {
-    users,
-    rentals,
-    disputes: bookings.filter((b) => b.status === "disputed").length,
-    pendingEvidence: evidence,
-  };
+  const bookings = await getAllBookings(); // fallback-safe
+  try {
+    const [users, rentals, evidence] = await Promise.all([
+      count("user_account"),
+      count("rental_order"),
+      count("rental_evidence"),
+    ]);
+    return {
+      users,
+      rentals,
+      disputes: bookings.filter((b) => b.status === "disputed").length,
+      pendingEvidence: evidence,
+    };
+  } catch {
+    const { mockUsers, mockEvidences } = await import("./fallback");
+    return {
+      users: mockUsers.length,
+      rentals: bookings.length,
+      disputes: bookings.filter((b) => b.status === "disputed").length,
+      pendingEvidence: mockEvidences.length,
+    };
+  }
 }
 
 // Disputes are derived from rental orders in the "Disputed" state (the schema

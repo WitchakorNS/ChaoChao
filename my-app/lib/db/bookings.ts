@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Booking } from "@/lib/mock/types";
 import { mapBooking, type OrderRow } from "./mappers";
+import { fallbackBookings } from "./fallback";
 
 const ORDER_SELECT = `
   rental_order_id, renter_id, pickup_time, return_time, total_price, total_deposit, created_at,
@@ -16,13 +17,17 @@ const ORDER_SELECT = `
 `;
 
 export async function getAllBookings(): Promise<Booking[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("rental_order")
-    .select(ORDER_SELECT)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data as unknown as OrderRow[]).map(mapBooking);
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("rental_order")
+      .select(ORDER_SELECT)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data as unknown as OrderRow[]).map(mapBooking);
+  } catch {
+    return fallbackBookings();
+  }
 }
 
 export interface BookingFilter {

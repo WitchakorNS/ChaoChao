@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { User } from "@/lib/mock/types";
 import { mapUser, type UserRow } from "./mappers";
 import { userNum } from "./ids";
+import { mockUsers } from "./fallback";
+import { getUser } from "@/lib/mock/data";
 
 const USER_SELECT = `
   user_id, name, email, created_at,
@@ -52,28 +54,36 @@ async function getUserLocation(userId: number): Promise<string | undefined> {
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const supabase = await createClient();
-  const uid = userNum(id);
-  const { data, error } = await supabase
-    .from("user_account")
-    .select(USER_SELECT)
-    .eq("user_id", uid)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  const [agg, location] = await Promise.all([
-    getLenderRating(uid),
-    getUserLocation(uid),
-  ]);
-  return mapUser(data as unknown as UserRow, agg, location);
+  try {
+    const supabase = await createClient();
+    const uid = userNum(id);
+    const { data, error } = await supabase
+      .from("user_account")
+      .select(USER_SELECT)
+      .eq("user_id", uid)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const [agg, location] = await Promise.all([
+      getLenderRating(uid),
+      getUserLocation(uid),
+    ]);
+    return mapUser(data as unknown as UserRow, agg, location);
+  } catch {
+    return getUser(id) ?? null;
+  }
 }
 
 export async function getAllUsers(): Promise<User[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("user_account")
-    .select(USER_SELECT)
-    .order("user_id");
-  if (error) throw error;
-  return (data as unknown as UserRow[]).map((row) => mapUser(row));
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("user_account")
+      .select(USER_SELECT)
+      .order("user_id");
+    if (error) throw error;
+    return (data as unknown as UserRow[]).map((row) => mapUser(row));
+  } catch {
+    return mockUsers;
+  }
 }
