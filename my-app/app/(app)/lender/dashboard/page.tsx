@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Truck,
 } from "lucide-react";
-import { currentUser, useDemo } from "@/lib/store";
+import { useDemo } from "@/lib/store";
 import { listings } from "@/lib/mock/data";
 import { getUser } from "@/lib/mock/data";
 import { formatDate, thb } from "@/lib/format";
@@ -18,8 +18,7 @@ import { StatCard } from "@/components/chao/stat-card";
 import { EmptyState, SectionHeading, StatusChip } from "@/components/chao/primitives";
 
 export default function LenderDashboard() {
-  const { bookings, userId } = useDemo();
-  const me = currentUser();
+  const { bookings, userId, me } = useDemo();
   const myListings = listings.filter((l) => l.ownerId === userId);
   const asLender = bookings.filter((b) => b.lenderId === userId);
 

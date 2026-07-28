@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { ThemeProvider, THEME_SCRIPT } from "@/components/theme-provider";
 import { DemoStoreProvider } from "@/lib/store";
-import { getBookingsForUser } from "@/lib/db";
-import { CURRENT_USER_ID } from "@/lib/mock/data";
-import type { Booking } from "@/lib/mock/types";
+import { getBookingsForUser, getUserById } from "@/lib/db";
+import { getCurrentUserId } from "@/lib/auth";
+import { getUser } from "@/lib/mock/data";
+import type { Booking, User } from "@/lib/mock/types";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -23,14 +24,24 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Hydrate the client store with the demo user's real bookings from the DB.
+  // Who is logged in (from the cookie; defaults to the demo user).
+  const currentUserId = await getCurrentUserId();
+
+  // Hydrate the client store with that user's data + bookings from the DB.
   // Falls back to mock data if the local Supabase isn't running.
   let initialBookings: Booking[] | undefined;
+  let currentUser: User | undefined;
   try {
-    initialBookings = await getBookingsForUser(CURRENT_USER_ID);
+    [initialBookings, currentUser] = await Promise.all([
+      getBookingsForUser(currentUserId),
+      getUserById(currentUserId),
+    ]).then(([b, u]) => [b, u ?? undefined] as [Booking[], User | undefined]);
   } catch {
     initialBookings = undefined;
+    currentUser = undefined;
   }
+  // Last-resort fallback so `me` is never empty.
+  currentUser = currentUser ?? getUser(currentUserId) ?? getUser("u_me");
 
   return (
     <html lang="th" suppressHydrationWarning>
@@ -43,7 +54,11 @@ export default async function RootLayout({
           {THEME_SCRIPT}
         </Script>
         <ThemeProvider>
-          <DemoStoreProvider initialBookings={initialBookings}>
+          <DemoStoreProvider
+            currentUserId={currentUserId}
+            currentUser={currentUser}
+            initialBookings={initialBookings}
+          >
             {children}
           </DemoStoreProvider>
         </ThemeProvider>

@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────────────────────
+# Consolidated .gitignore for the ChaoChao repo
+# Patterns are unrooted so they match at any depth (root + my-app/).
+# ─────────────────────────────────────────────────────────────
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js / build output
+.next/
+out/
+build/
+dist/
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+.env.keys
+# keep committed example templates
+!.env.example
+
+# Logs / debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Supabase CLI (local project state)
+.branches
+.temp
+
+# Deploy
+.vercel
+
+# Editor / OS junk
+.DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/
+
+# Claude Code
+.claude/
+
+# ─────────────────────────────────────────────────────────────
+# Local-only clones / scratch that should never be pushed
+# ─────────────────────────────────────────────────────────────
+
+# Full Supabase monorepo clone (~1.3 GB, has its own .git)
+/supabase/
+
+# Local secrets dump (self-hosted env)
+/supabase-project/

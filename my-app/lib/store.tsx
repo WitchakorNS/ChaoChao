@@ -20,6 +20,7 @@ import type {
   BookingStatus,
   ChatRoom,
   AppNotification,
+  User,
 } from "./mock/types";
 
 // Which persona the demo is currently viewing as.
@@ -27,6 +28,8 @@ export type Persona = "renter" | "lender" | "admin";
 
 interface DemoState {
   userId: string;
+  me: User;
+  logout: () => void;
   persona: Persona;
   setPersona: (p: Persona) => void;
 
@@ -55,11 +58,17 @@ const DemoContext = createContext<DemoState | null>(null);
 export function DemoStoreProvider({
   children,
   initialBookings,
+  currentUserId,
+  currentUser: currentUserProp,
 }: {
   children: React.ReactNode;
   // Hydrated from the DB by the root layout; falls back to mock seed data.
   initialBookings?: Booking[];
+  currentUserId?: string;
+  currentUser?: User;
 }) {
+  const userId = currentUserId ?? CURRENT_USER_ID;
+  const me = currentUserProp ?? getUser(CURRENT_USER_ID)!;
   const [persona, setPersona] = useState<Persona>("renter");
   const [bookings, setBookings] = useState<Booking[]>(() =>
     (initialBookings && initialBookings.length
@@ -160,7 +169,7 @@ export function DemoStoreProvider({
                 ...c.messages,
                 {
                   id: `m-${Date.now()}`,
-                  senderId: CURRENT_USER_ID,
+                  senderId: userId,
                   text,
                   time: new Date().toISOString(),
                 },
@@ -169,11 +178,23 @@ export function DemoStoreProvider({
           : c,
       ),
     );
+  }, [userId]);
+
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // ignore
+    }
+    // Full navigation so the server re-reads the (now cleared) cookie.
+    window.location.href = "/login";
   }, []);
 
   const value = useMemo<DemoState>(
     () => ({
-      userId: CURRENT_USER_ID,
+      userId,
+      me,
+      logout,
       persona,
       setPersona,
       bookings,
@@ -193,6 +214,9 @@ export function DemoStoreProvider({
       sendMessage,
     }),
     [
+      userId,
+      me,
+      logout,
       persona,
       bookings,
       notifications,
@@ -219,4 +243,8 @@ export function useDemo() {
   return ctx;
 }
 
+/**
+ * @deprecated Prefer `useDemo().me` — it reflects the logged-in user. This
+ * standalone helper only returns the default demo user and can't see the cookie.
+ */
 export const currentUser = () => getUser(CURRENT_USER_ID)!;

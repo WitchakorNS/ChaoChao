@@ -2,21 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { Logo } from "@/components/chao/logo";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("demo@chaochao.app");
   const [password, setPassword] = useState("demo1234");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  // DB-backed login: look up the account by email (no password check — demo).
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setTimeout(() => router.push("/renter/dashboard"), 700);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "เข้าสู่ระบบไม่สำเร็จ");
+      // Full navigation so the root layout re-reads the new cookie.
+      window.location.href = "/renter/dashboard";
+    } catch (err) {
+      setError((err as Error).message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,6 +80,10 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {error && (
+              <p className="text-sm text-danger">{error}</p>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -76,9 +94,18 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-5 rounded-lg bg-muted/60 p-3 text-center text-xs text-muted-foreground">
-            โหมดเดโม — กด “เข้าสู่ระบบ” เพื่อเข้าใช้งานได้ทันที
-          </p>
+          <div className="mt-5 rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">โหมดเดโม — บัญชีที่ล็อกอินได้:</p>
+            <p className="mt-1">
+              <code>demo@chaochao.app</code> (คุณ) ·{" "}
+              <code>somchai@chaochao.app</code> (ผู้ให้เช่า) ·{" "}
+              <code>mind@chaochao.app</code> (ผู้เช่า) ·{" "}
+              <code>admin@chaochao.app</code> (แอดมิน)
+            </p>
+            <p className="mt-1 text-[11px]">
+              * ตรวจสอบด้วยอีเมลเท่านั้น ยังไม่เช็ครหัสผ่าน (เดโม)
+            </p>
+          </div>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
             ยังไม่มีบัญชี?{" "}

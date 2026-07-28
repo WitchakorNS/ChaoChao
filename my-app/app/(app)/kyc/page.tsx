@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CURRENT_USER_ID } from "@/lib/mock/data";
 import {
   BadgeCheck,
   IdCard,
@@ -13,12 +12,14 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDemo } from "@/lib/store";
 import { StatusChip } from "@/components/chao/primitives";
 
 type Status = "unverified" | "pending" | "verified";
 
 export default function KycPage() {
   const router = useRouter();
+  const { userId } = useDemo();
   const [idCard, setIdCard] = useState(false);
   const [selfie, setSelfie] = useState(false);
   const [status, setStatus] = useState<Status>("unverified");
@@ -41,7 +42,7 @@ export default function KycPage() {
   };
 
   const patchKyc = async (kyc: Status) => {
-    const res = await fetch(`/api/users/${CURRENT_USER_ID}`, {
+    const res = await fetch(`/api/users/${userId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kyc }),

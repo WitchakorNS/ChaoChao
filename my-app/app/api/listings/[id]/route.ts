@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getListingById } from "@/lib/db";
 import { setListingStatus, updateListing } from "@/lib/db/mutations";
-import { CURRENT_USER_ID } from "@/lib/mock/data";
+import { getCurrentUserId } from "@/lib/auth";
 import type { ListingStatus } from "@/lib/mock/types";
 
 export async function GET(
@@ -47,7 +47,7 @@ export async function PATCH(
       returnLocation: body.returnLocation,
       imageSeeds: body.imageSeeds,
       publish: body.publish !== false,
-      ownerId: CURRENT_USER_ID,
+      ownerId: await getCurrentUserId(),
     });
     return NextResponse.json({ id });
   } catch (e) {

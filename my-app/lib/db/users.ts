@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { User } from "@/lib/mock/types";
 import { mapUser, type UserRow } from "./mappers";
-import { userNum } from "./ids";
+import { uid, userNum } from "./ids";
 import { mockUsers } from "./fallback";
-import { getUser } from "@/lib/mock/data";
+import { getUser, users as mockUserList } from "@/lib/mock/data";
 
 const USER_SELECT = `
   user_id, name, email, created_at,
@@ -85,5 +85,28 @@ export async function getAllUsers(): Promise<User[]> {
     return (data as unknown as UserRow[]).map((row) => mapUser(row));
   } catch {
     return mockUsers;
+  }
+}
+
+// Look up a user by email (case-insensitive) — used by the DB-backed login.
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const clean = email.trim();
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("user_account")
+      .select("user_id")
+      .ilike("email", clean)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return getUserById(uid(data.user_id as number));
+  } catch {
+    // Fallback: match against the mock catalog by a demo email convention.
+    return (
+      mockUserList.find(
+        (u) => `${u.id}@chaochao.app`.toLowerCase() === clean.toLowerCase(),
+      ) ?? null
+    );
   }
 }

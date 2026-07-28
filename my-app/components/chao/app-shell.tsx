@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser, useDemo, type Persona } from "@/lib/store";
+import { useDemo, type Persona } from "@/lib/store";
 import {
   personaHome,
   personaLabel,
@@ -33,8 +33,7 @@ function isActive(pathname: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { persona, setPersona, unreadCount } = useDemo();
-  const me = currentUser();
+  const { persona, setPersona, unreadCount, me } = useDemo();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [query, setQuery] = useState("");
   const nav = personaNav[persona];

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getListings } from "@/lib/db";
 import { createListing } from "@/lib/db/mutations";
-import { CURRENT_USER_ID } from "@/lib/mock/data";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       returnLocation: body.returnLocation,
       imageSeeds: body.imageSeeds,
       publish: body.publish !== false,
-      ownerId: CURRENT_USER_ID,
+      ownerId: await getCurrentUserId(),
     });
     return NextResponse.json({ id }, { status: 201 });
   } catch (e) {

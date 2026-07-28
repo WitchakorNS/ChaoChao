@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/chao/logo";
@@ -16,7 +15,6 @@ const ROLES: { key: Role; title: string; desc: string }[] = [
 ];
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [role, setRole] = useState<Role>("both");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -41,7 +39,9 @@ export default function RegisterPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? "สมัครสมาชิกไม่สำเร็จ");
-      router.push("/kyc");
+      // The API auto-logs-in (sets the cookie); full reload so the layout picks
+      // up the new user.
+      window.location.href = "/kyc";
     } catch (e) {
       setError((e as Error).message);
       setLoading(false);

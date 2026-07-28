@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getReviewsForListing } from "@/lib/db";
 import { createReview } from "@/lib/db/mutations";
-import { CURRENT_USER_ID } from "@/lib/mock/data";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
     const id = await createReview({
       bookingId: body.bookingId,
-      authorId: body.authorId ?? CURRENT_USER_ID,
+      authorId: body.authorId ?? (await getCurrentUserId()),
       rating,
       comment: body.comment,
       imageSeeds: body.imageSeeds,

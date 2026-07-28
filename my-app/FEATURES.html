@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CHAOCHAO — แผนที่ฟีเจอร์ → โค้ด</title>
+    <style>
+      :root {
+        --navy: #1c3554;
+        --action: #7bb9fa;
+        --action-strong: #2f7fe0;
+        --ink: #282828;
+        --muted: #667085;
+        --line: #e4e8ee;
+        --bg: #f6f8fb;
+        --card: #ffffff;
+        --ui: #7bb9fa;
+        --api: #f5a524;
+        --db: #16a34a;
+        --mock: #98a2b3;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: "Noto Sans Thai", "Sarabun", "Leelawadee UI", system-ui,
+          -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.6;
+      }
+      a { color: var(--action-strong); }
+      code {
+        font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+        font-size: 0.86em;
+        background: #eef2f7;
+        padding: 1px 6px;
+        border-radius: 6px;
+        color: #0f2c4d;
+        word-break: break-all;
+      }
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 80px; }
+
+      header.hero {
+        background: linear-gradient(135deg, #1c3554, #2a4a72);
+        color: #fff;
+        padding: 44px 0 40px;
+      }
+      header.hero .wrap { padding-bottom: 0; }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; letter-spacing: -0.3px; }
+      .brand .mark {
+        width: 34px; height: 34px; border-radius: 9px;
+        background: rgba(255,255,255,.12); display: grid; place-items: center;
+        border: 1px solid rgba(255,255,255,.18); font-size: 18px;
+      }
+      .brand .accent { color: var(--action); }
+      header.hero h1 { margin: 20px 0 6px; font-size: 30px; letter-spacing: -0.5px; }
+      header.hero p { margin: 0; color: #cfe0f4; max-width: 720px; }
+
+      .legend {
+        display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px;
+      }
+      .legend .chip {
+        background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18);
+        color: #fff; padding: 6px 12px; border-radius: 999px; font-size: 13px;
+        display: inline-flex; align-items: center; gap: 8px;
+      }
+      .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+      .dot.ui { background: var(--ui); }
+      .dot.api { background: var(--api); }
+      .dot.db { background: var(--db); }
+      .dot.mock { background: var(--mock); }
+
+      .toc {
+        background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        padding: 16px 18px; margin: 26px 0 8px;
+        box-shadow: 0 1px 2px rgba(16,24,40,.04);
+      }
+      .toc h2 { margin: 0 0 10px; font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+      .toc ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 6px 18px; }
+      .toc a { text-decoration: none; color: var(--ink); font-size: 14.5px; display: block; padding: 3px 0; }
+      .toc a:hover { color: var(--action-strong); }
+      .toc .num { color: var(--action-strong); font-weight: 700; margin-right: 6px; }
+
+      section.card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+        padding: 22px 24px; margin-top: 22px;
+        box-shadow: 0 1px 2px rgba(16,24,40,.04);
+      }
+      section.card > h2 {
+        margin: 0 0 4px; font-size: 20px; color: var(--navy); letter-spacing: -0.3px;
+        display: flex; align-items: baseline; gap: 10px;
+      }
+      section.card > h2 .n {
+        font-size: 13px; font-weight: 800; color: #fff; background: var(--navy);
+        border-radius: 8px; padding: 2px 9px; letter-spacing: 0;
+      }
+      section.card > p.desc { margin: 2px 0 14px; color: var(--muted); font-size: 14.5px; }
+
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+      tr:last-child td { border-bottom: none; }
+      td:first-child { font-weight: 600; white-space: nowrap; }
+
+      .tag {
+        display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px;
+        padding: 1px 7px; margin-right: 6px; color: #fff; vertical-align: middle;
+      }
+      .tag.ui { background: var(--ui); color: #0f2c4d; }
+      .tag.api { background: var(--api); color: #4a2e00; }
+      .tag.db { background: var(--db); }
+      .tag.mock { background: var(--mock); }
+
+      .flow {
+        background: #0f2138; color: #dce8f7; border-radius: 14px; padding: 18px 20px;
+        font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; line-height: 1.9;
+        overflow-x: auto; white-space: pre;
+      }
+      .flow .hl { color: var(--action); }
+      .note {
+        border-left: 4px solid var(--action); background: #eef6ff; padding: 12px 16px;
+        border-radius: 0 10px 10px 0; margin-top: 14px; font-size: 14px; color: #234;
+      }
+      footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+      @media (max-width: 640px) {
+        header.hero h1 { font-size: 24px; }
+        td:first-child { white-space: normal; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <div class="brand">
+          <span class="mark">⇄</span> CHAO<span class="accent">CHAO</span>
+        </div>
+        <h1>แผนที่ฟีเจอร์ → โค้ด</h1>
+        <p>
+          เอกสารนี้บอกว่าแต่ละฟีเจอร์ในเว็บ <strong>โค้ดอยู่ไฟล์ไหน</strong>
+          เพื่อไล่อ่าน/แก้ไขได้เร็ว · ทุก path อ้างอิงจากโฟลเดอร์ <code>my-app/</code>
+        </p>
+        <div class="legend">
+          <span class="chip"><span class="dot ui"></span> UI — หน้า/คอมโพเนนต์</span>
+          <span class="chip"><span class="dot api"></span> API — <code>app/api/*</code></span>
+          <span class="chip"><span class="dot db"></span> DB logic — <code>lib/db/*</code></span>
+          <span class="chip"><span class="dot mock"></span> ยังเป็น mock</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <nav class="toc">
+        <h2>สารบัญ</h2>
+        <ul>
+          <li><a href="#s0"><span class="num">0</span>โครงสร้างพื้นฐาน</a></li>
+          <li><a href="#s1"><span class="num">1</span>หน้าแรก (Home)</a></li>
+          <li><a href="#s2"><span class="num">2</span>ค้นหา / Explore</a></li>
+          <li><a href="#s3"><span class="num">3</span>รายละเอียดสินค้า</a></li>
+          <li><a href="#s4"><span class="num">4</span>เข้าสู่ระบบ / สมัคร / KYC</a></li>
+          <li><a href="#s5"><span class="num">5</span>การเช่า (Booking)</a></li>
+          <li><a href="#s6"><span class="num">6</span>แดชบอร์ดผู้เช่า</a></li>
+          <li><a href="#s7"><span class="num">7</span>จัดการประกาศ (Lender)</a></li>
+          <li><a href="#s8"><span class="num">8</span>ความน่าเชื่อถือ</a></li>
+          <li><a href="#s9"><span class="num">9</span>แชท / แจ้งเตือน</a></li>
+          <li><a href="#s11"><span class="num">11</span>โปรไฟล์ / ตั้งค่า / บันทึก</a></li>
+          <li><a href="#s12"><span class="num">12</span>แอดมิน (Admin)</a></li>
+          <li><a href="#s13"><span class="num">13</span>ฐานข้อมูล</a></li>
+          <li><a href="#flow"><span class="num">↦</span>Flow ของ 1 request</a></li>
+        </ul>
+      </nav>
+
+      <div class="note">
+        <strong>สถาปัตยกรรมโดยรวม:</strong> UI (หน้า/คอมโพเนนต์) →
+        REST API (<code>app/api/*</code>) → Data layer (<code>lib/db/*</code>) →
+        PostgreSQL (Supabase). หน้าที่ "อ่าน" เรียก <code>lib/db</code> ตรง ๆ ฝั่ง server
+        ส่วนหน้าที่ "เขียน" ยิงผ่าน <code>app/api/*</code>.
+      </div>
+
+      <section class="card" id="s0">
+        <h2><span class="n">0</span> โครงสร้างพื้นฐาน (ใช้ร่วมทุกฟีเจอร์)</h2>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th><th>หน้าที่</th></tr>
+          <tr><td>Root layout</td><td><code>app/layout.tsx</code></td><td>โหลด bookings จาก DB ใส่ store, ครอบ ThemeProvider</td></tr>
+          <tr><td>เปลือก UI</td><td><code>components/chao/app-shell.tsx</code></td><td>header/sidebar/bottom-nav + สลับ persona</td></tr>
+          <tr><td>เมนูนำทาง</td><td><code>components/chao/nav-config.ts</code></td><td>เมนูของแต่ละ persona</td></tr>
+          <tr><td>State กลาง (client)</td><td><code>lib/store.tsx</code></td><td>persona, bookings, saved, notifications, chat</td></tr>
+          <tr><td>Type กลาง</td><td><code>lib/mock/types.ts</code></td><td>นิยาม Listing / Booking / User / Review …</td></tr>
+          <tr><td>Data layer (อ่าน)</td><td><code>lib/db/mappers.ts</code>, <code>listings.ts</code>, <code>bookings.ts</code>, <code>users.ts</code>, <code>reviews.ts</code>, <code>evidence.ts</code>, <code>admin.ts</code></td><td>ดึง DB + แปลง row → view-model</td></tr>
+          <tr><td>Data layer (เขียน)</td><td><code>lib/db/mutations.ts</code></td><td>insert/update ลง DB ทั้งหมด</td></tr>
+          <tr><td>id map + fallback</td><td><code>lib/db/ids.ts</code>, <code>lib/db/fallback.ts</code></td><td>แปลง id DB↔app, ใช้ mock เมื่อ DB ล่ม</td></tr>
+          <tr><td>Supabase clients</td><td><code>lib/supabase/server.ts</code> (อ่าน), <code>lib/supabase/admin.ts</code> (เขียน)</td><td>เชื่อมต่อ DB</td></tr>
+          <tr><td>ธีม light/dark</td><td><code>components/theme-provider.tsx</code>, <code>components/chao/theme-toggle.tsx</code></td><td>—</td></tr>
+          <tr><td>ดีไซน์/โทเคนสี</td><td><code>app/globals.css</code>, <code>tailwind.config.ts</code></td><td>—</td></tr>
+          <tr><td>รูป placeholder</td><td><code>components/chao/primitives.tsx</code></td><td>gradient — ไม่ใช้รูปจากเน็ต</td></tr>
+          <tr><td>หมวดหมู่สินค้า</td><td><code>lib/categories.ts</code></td><td>ชื่อ/ไอคอนหมวดหมู่</td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s1">
+        <h2><span class="n">1</span> หน้าแรก (Home)</h2>
+        <p class="desc">ค้นหา · หมวดหมู่ยอดนิยม · สินค้าแนะนำ · วิธีใช้งาน · จุดเด่น</p>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th></tr>
+          <tr><td><span class="tag ui">UI</span>หน้า</td><td><code>app/(app)/page.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>ช่องค้นหา</td><td><code>components/chao/home-search.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>การ์ดสินค้า</td><td><code>components/chao/product-card.tsx</code></td></tr>
+          <tr><td><span class="tag db">DB</span>ดึงสินค้า</td><td><code>lib/db/listings.ts</code> → <code>getListings()</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s2">
+        <h2><span class="n">2</span> ค้นหา / Explore</h2>
+        <p class="desc">ค้นหา + filter (หมวด/ราคา/คะแนน/ว่าง) + sort + สลับ grid/list</p>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th></tr>
+          <tr><td><span class="tag ui">UI</span>หน้า (server)</td><td><code>app/(app)/explore/page.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>filter/sort (client)</td><td><code>components/chao/explore-client.tsx</code></td></tr>
+          <tr><td><span class="tag api">API</span>รายการสินค้า</td><td><code>app/api/listings/route.ts</code> (GET)</td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s3">
+        <h2><span class="n">3</span> รายละเอียดสินค้า (Product Detail)</h2>
+        <p class="desc">รูป · สเปก · เงื่อนไข · ข้อมูลผู้ให้เช่า · รีวิว · กล่องส่งคำขอเช่า</p>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th></tr>
+          <tr><td><span class="tag ui">UI</span>หน้า</td><td><code>app/(app)/product/[id]/page.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>แกลเลอรีรูป</td><td><code>components/chao/product-gallery.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>กล่องจอง</td><td><code>components/chao/booking-widget.tsx</code></td></tr>
+          <tr><td><span class="tag db">DB</span>สินค้า/ผู้ให้เช่า/รีวิว</td><td><code>lib/db/listings.ts</code>, <code>users.ts</code>, <code>reviews.ts</code></td></tr>
+          <tr><td><span class="tag api">API</span>—</td><td><code>app/api/listings/[id]/route.ts</code>, <code>app/api/reviews/route.ts</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s4">
+        <h2><span class="n">4</span> เข้าสู่ระบบ / สมัครสมาชิก / KYC</h2>
+        <p class="desc">Auth เป็น mock — ฟอร์มสมัคร <strong>ไม่ส่งรหัสผ่านไป server</strong></p>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>หน้า</th><th>API / logic</th></tr>
+          <tr><td>เข้าสู่ระบบ</td><td><code>app/login/page.tsx</code></td><td><span class="tag mock">mock</span></td></tr>
+          <tr><td>สมัครสมาชิก</td><td><code>app/register/page.tsx</code></td><td><code>app/api/users/route.ts</code> (POST) → <code>createUser()</code></td></tr>
+          <tr><td>ยืนยันตัวตน KYC</td><td><code>app/(app)/kyc/page.tsx</code></td><td><code>app/api/users/[id]/route.ts</code> (PATCH) → <code>setUserKyc()</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s5">
+        <h2><span class="n">5</span> การเช่า (Booking Lifecycle) — ฟีเจอร์หลัก</h2>
+        <p class="desc">รออนุมัติ → รอชำระ → ยืนยัน → ส่งมอบ → ใกล้คืน → คืน → เสร็จ (+ ยกเลิก/ข้อพิพาท)</p>
+        <div class="scroll"><table>
+          <tr><th>ขั้นตอน</th><th>หน้า/คอมโพเนนต์</th><th>API</th><th>logic (lib/db)</th></tr>
+          <tr><td>ส่งคำขอเช่า</td><td><code>components/chao/booking-widget.tsx</code></td><td><code>api/bookings</code> POST</td><td><code>createBooking()</code></td></tr>
+          <tr><td>อนุมัติ / ปฏิเสธ</td><td><code>app/(app)/lender/requests/page.tsx</code></td><td><code>api/bookings/[id]</code> PATCH</td><td><code>approveBooking()</code> / <code>rejectBooking()</code></td></tr>
+          <tr><td>ชำระเงิน (mock)</td><td><code>app/(app)/renter/payment/[id]/page.tsx</code></td><td><code>api/bookings/[id]</code> PATCH</td><td><code>payBooking()</code></td></tr>
+          <tr><td>เดินสถานะต่อ</td><td>—</td><td><code>api/bookings/[id]</code> PATCH <code>advance</code></td><td><code>advanceBooking()</code></td></tr>
+          <tr><td>รายละเอียด + Timeline</td><td><code>app/(app)/renter/bookings/[id]/page.tsx</code></td><td>—</td><td>—</td></tr>
+          <tr><td>คิดสถานะจาก workflow</td><td>—</td><td>—</td><td><code>mappers.ts</code> → <code>deriveBookingStatus()</code>, <code>buildTimeline()</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s6">
+        <h2><span class="n">6</span> แดชบอร์ดผู้เช่า (Renter)</h2>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th></tr>
+          <tr><td><span class="tag ui">UI</span>แดชบอร์ด</td><td><code>app/(app)/renter/dashboard/page.tsx</code></td></tr>
+          <tr><td><span class="tag ui">UI</span>รายการเช่าของฉัน</td><td><code>app/(app)/renter/bookings/page.tsx</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s7">
+        <h2><span class="n">7</span> จัดการประกาศ (Lender)</h2>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>หน้า/คอมโพเนนต์</th><th>API</th><th>logic</th></tr>
+          <tr><td>แดชบอร์ด</td><td><code>app/(app)/lender/dashboard/page.tsx</code></td><td>—</td><td>—</td></tr>
+          <tr><td>รายการสินค้า + เปิด/ปิด</td><td><code>lender/listings/page.tsx</code> + <code>lender-listings-client.tsx</code></td><td><code>api/listings/[id]</code> PATCH</td><td><code>setListingStatus()</code></td></tr>
+          <tr><td>เพิ่มสินค้า</td><td><code>lender/listings/new/page.tsx</code> + <code>listing-form.tsx</code></td><td><code>api/listings</code> POST</td><td><code>createListing()</code></td></tr>
+          <tr><td>แก้ไขสินค้า</td><td><code>lender/listings/[id]/edit/page.tsx</code></td><td><code>api/listings/[id]</code> PATCH</td><td><code>updateListing()</code></td></tr>
+          <tr><td>คำขอเช่า</td><td><code>app/(app)/lender/requests/page.tsx</code></td><td>ดูข้อ 5</td><td>—</td></tr>
+          <tr><td>ตารางจอง (ปฏิทิน)</td><td><code>app/(app)/lender/calendar/page.tsx</code></td><td>—</td><td><span class="tag mock">mock</span></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s8">
+        <h2><span class="n">8</span> ความน่าเชื่อถือ (จุดขายของแพลตฟอร์ม)</h2>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>หน้า</th><th>API</th><th>logic</th></tr>
+          <tr><td>รีวิว + ให้คะแนน</td><td><code>app/(app)/renter/review/[id]/page.tsx</code></td><td><code>api/reviews</code> POST</td><td><code>createReview()</code> + view <code>item_rating</code></td></tr>
+          <tr><td>อัปโหลดหลักฐานรูป</td><td><code>app/(app)/evidence/[id]/page.tsx</code></td><td><code>api/evidence</code> POST</td><td><code>createEvidence()</code></td></tr>
+          <tr><td>ยืนยันตัวตน KYC</td><td><code>app/(app)/kyc/page.tsx</code></td><td><code>api/users/[id]</code> PATCH</td><td><code>setUserKyc()</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s9">
+        <h2><span class="n">9–10</span> แชท / การแจ้งเตือน <span class="tag mock" style="margin-left:6px">mock</span></h2>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>ไฟล์</th></tr>
+          <tr><td>แชท + ส่งข้อความ</td><td><code>app/(app)/renter/chat/page.tsx</code> + <code>lib/store.tsx</code> (<code>sendMessage</code>)</td></tr>
+          <tr><td>การแจ้งเตือน</td><td><code>app/(app)/notifications/page.tsx</code> + <code>lib/store.tsx</code> (<code>markRead</code>)</td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s11">
+        <h2><span class="n">11</span> โปรไฟล์ / ตั้งค่า / สินค้าที่บันทึก</h2>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>ไฟล์</th></tr>
+          <tr><td>โปรไฟล์</td><td><code>app/(app)/profile/page.tsx</code></td></tr>
+          <tr><td>ตั้งค่า (ธีม/ภาษา/แจ้งเตือน)</td><td><code>app/(app)/settings/page.tsx</code></td></tr>
+          <tr><td>สินค้าที่บันทึก</td><td><code>app/(app)/saved/page.tsx</code> + <code>lib/store.tsx</code> (<code>toggleSaved</code>)</td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s12">
+        <h2><span class="n">12</span> แอดมิน (Admin)</h2>
+        <div class="scroll"><table>
+          <tr><th>ฟีเจอร์</th><th>หน้า</th><th>API</th><th>logic</th></tr>
+          <tr><td>แดชบอร์ด</td><td><code>admin/dashboard/page.tsx</code></td><td><code>api/admin/summary</code></td><td><code>getAdminSummary()</code></td></tr>
+          <tr><td>รายการเช่าทั้งหมด</td><td><code>admin/rentals/page.tsx</code></td><td><code>api/admin/rentals</code></td><td><code>getAdminRentals()</code></td></tr>
+          <tr><td>ข้อพิพาท</td><td><code>admin/disputes/page.tsx</code> + <code>admin-disputes-client.tsx</code></td><td><code>api/admin/disputes</code></td><td><code>getDisputes()</code></td></tr>
+          <tr><td>ตรวจหลักฐาน</td><td><code>admin/evidence/page.tsx</code> + <code>admin-evidence-client.tsx</code></td><td><code>api/admin/evidence</code></td><td><code>getAllEvidence()</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="s13">
+        <h2><span class="n">13</span> ฐานข้อมูล (Database)</h2>
+        <div class="scroll"><table>
+          <tr><th>ส่วน</th><th>ไฟล์</th></tr>
+          <tr><td>Schema หลัก (จาก ER)</td><td><code>supabase/migrations/20260715000001_init.sql</code></td></tr>
+          <tr><td>เพิ่มคอลัมน์หมวดหมู่</td><td><code>…_add_item_category.sql</code></td></tr>
+          <tr><td>View คะแนนรีวิวต่อสินค้า</td><td><code>…_item_rating_view.sql</code></td></tr>
+          <tr><td>สิทธิ์อ่าน (anon)</td><td><code>…_grants.sql</code></td></tr>
+          <tr><td>รองรับการเขียน (service_role)</td><td><code>…_write_support.sql</code></td></tr>
+          <tr><td>ข้อมูลตั้งต้น (demo)</td><td><code>supabase/seed.sql</code></td></tr>
+        </table></div>
+      </section>
+
+      <section class="card" id="flow">
+        <h2>↦ Flow ของ 1 request <span style="font-size:14px;font-weight:400;color:var(--muted)">(ตัวอย่าง: กด "ส่งคำขอเช่า")</span></h2>
+        <div class="flow"><span class="hl">booking-widget.tsx</span>            กดปุ่ม → fetch POST
+        ↓
+<span class="hl">app/api/bookings/route.ts</span>     Route Handler ตรวจ input
+        ↓
+<span class="hl">lib/db/mutations.ts</span>           createBooking() — คิดราคา + insert
+        ↓
+<span class="hl">lib/supabase/admin.ts</span>         service-role client
+        ↓
+<span class="hl">PostgreSQL</span>                    rental_order + rental_order_item + payment
+        ↓
+<span class="hl">router.refresh()</span>              store re-sync จาก DB (lib/store.tsx)</div>
+        <div class="note">
+          <strong>ฟีเจอร์ที่ยังเป็น mock (ไม่ลง DB):</strong> แชท · การแจ้งเตือน ·
+          สินค้าที่บันทึก · ตั้งค่า · ตารางจอง — เพราะไม่มีในสคีมา ER · ข้อมูลอยู่ที่
+          <code>lib/mock/data.ts</code> + <code>lib/store.tsx</code>
+        </div>
+      </section>
+
+      <footer>CHAOCHAO Rental Platform · Feature-to-code map · สร้างเพื่อใช้ประกอบการพัฒนา/รายงาน</footer>
+    </div>
+  </body>
+</html>

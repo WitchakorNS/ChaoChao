@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
   Heart,
@@ -11,15 +10,13 @@ import {
   Star,
   Receipt,
 } from "lucide-react";
-import { currentUser, useDemo } from "@/lib/store";
+import { useDemo } from "@/lib/store";
 import { listings } from "@/lib/mock/data";
 import { kycMeta } from "@/lib/format";
 import { Avatar, StatusChip, VerifiedBadge } from "@/components/chao/primitives";
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const me = currentUser();
-  const { bookings, userId, savedCount } = useDemo();
+  const { bookings, userId, savedCount, me, logout } = useDemo();
   const myRentals = bookings.filter((b) => b.renterId === userId).length;
   const myListings = listings.filter((l) => l.ownerId === userId).length;
   const kyc = kycMeta[me.kyc];
@@ -86,7 +83,7 @@ export default function ProfilePage() {
       </div>
 
       <button
-        onClick={() => router.push("/login")}
+        onClick={logout}
         className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-danger/40 text-sm font-semibold text-danger transition hover:bg-danger/5"
       >
         <LogOut className="h-4 w-4" /> ออกจากระบบ

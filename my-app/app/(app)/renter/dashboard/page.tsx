@@ -9,15 +9,14 @@ import {
   Search,
   Wallet,
 } from "lucide-react";
-import { currentUser, useDemo } from "@/lib/store";
+import { useDemo } from "@/lib/store";
 import { formatDateTime } from "@/lib/format";
 import { StatCard } from "@/components/chao/stat-card";
 import { BookingCard } from "@/components/chao/booking-card";
 import { EmptyState, SectionHeading, VerifiedBadge } from "@/components/chao/primitives";
 
 export default function RenterDashboard() {
-  const { bookings, notifications, userId } = useDemo();
-  const me = currentUser();
+  const { bookings, notifications, userId, me } = useDemo();
   const mine = bookings.filter((b) => b.renterId === userId);
 
   const active = mine.filter((b) =>

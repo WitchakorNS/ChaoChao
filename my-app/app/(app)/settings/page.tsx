@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { Bell, Globe, Moon, ShieldCheck, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/lib/store";
+import { useDemo } from "@/lib/store";
 
 export default function SettingsPage() {
-  const me = currentUser();
+  const { me } = useDemo();
   const { theme, setTheme } = useTheme();
   const [notif, setNotif] = useState({ push: true, email: true, chat: true });
   const [lang, setLang] = useState("th");
