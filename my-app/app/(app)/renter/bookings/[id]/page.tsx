@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   Camera,
+  CheckCircle2,
+  Loader2,
   MapPin,
   MessageSquare,
   Star,
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 import { useDemo } from "@/lib/store";
 import { getListing, getUser, getCategory } from "@/lib/mock/data";
+import type { BookingStatus, User } from "@/lib/mock/types";
 import { bookingStatusMeta, formatDate, thb } from "@/lib/format";
 import {
   Avatar,
@@ -23,11 +26,36 @@ import {
 } from "@/components/chao/primitives";
 import { BookingTimeline } from "@/components/chao/timeline";
 
+// Build a display user for parties that aren't in the mock catalog (e.g. newly
+// registered DB accounts) so their name + avatar still render.
+function synthUser(id: string, name?: string): User {
+  const n = name ?? "ผู้ใช้";
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
+  const parts = n.trim().split(/\s+/);
+  const initials =
+    parts.length >= 2 ? (parts[0][0] ?? "") + (parts[1][0] ?? "") : n.slice(0, 2);
+  return {
+    id,
+    name: n,
+    avatarColor: `${h} 55% 55%`,
+    initials,
+    role: "renter",
+    kyc: "verified",
+    rating: 5,
+    reviewCount: 0,
+    location: "",
+    joinedYear: 2024,
+    responseRate: 95,
+  };
+}
+
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { bookings } = useDemo();
+  const { bookings, advanceBooking } = useDemo();
   const [reported, setReported] = useState(false);
+  const [busy, setBusy] = useState(false);
   const booking = bookings.find((b) => b.id === id);
 
   if (!booking) {
@@ -40,9 +68,47 @@ export default function BookingDetailPage() {
 
   const listing = getListing(booking.listingId);
   const category = listing ? getCategory(listing.categoryId) : undefined;
-  const lender = getUser(booking.lenderId);
-  const renter = getUser(booking.renterId);
+  // Prefer the DB enrichment carried on the booking; fall back to the mock
+  // catalog. This is why user-created (DB-only) items now show correctly.
+  const title = booking.listingTitle ?? listing?.title ?? "สินค้า";
+  const imageSeed =
+    booking.listingImageSeed ?? listing?.imageSeeds[0] ?? booking.id;
+  const catIcon = booking.listingCategoryIcon ?? category?.icon;
+  const location = listing?.location;
+  const lender =
+    getUser(booking.lenderId) ?? synthUser(booking.lenderId, booking.lenderName);
+  const renter =
+    getUser(booking.renterId) ?? synthUser(booking.renterId, booking.renterName);
   const meta = bookingStatusMeta[booking.status];
+
+  // The next workflow step this booking can advance to (issue 1).
+  const nextStep: { label: string; state: string; ui: BookingStatus } | null =
+    booking.status === "confirmed"
+      ? { label: "ยืนยันรับสินค้า", state: "PickedUp", ui: "delivered" }
+      : booking.status === "delivered" || booking.status === "due_soon"
+        ? { label: "ยืนยันคืนสินค้า", state: "Returned", ui: "returned" }
+        : booking.status === "returned"
+          ? { label: "ปิดรายการ (เสร็จสมบูรณ์)", state: "Completed", ui: "completed" }
+          : null;
+
+  const advance = async () => {
+    if (!nextStep) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/bookings/${booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "advance", state: nextStep.state }),
+      });
+      if (!res.ok) throw new Error();
+      advanceBooking(booking.id, nextStep.ui);
+      router.refresh();
+    } catch {
+      // keep current state on failure
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -57,7 +123,7 @@ export default function BookingDetailPage() {
         <div>
           <p className="font-mono text-sm text-muted-foreground">{booking.id}</p>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            {listing?.title}
+            {title}
           </h1>
         </div>
         <StatusChip tone={meta.tone}>{meta.label}</StatusChip>
@@ -66,20 +132,22 @@ export default function BookingDetailPage() {
       {/* Product summary */}
       <div className="mt-5 flex gap-4 rounded-xl border bg-card p-4 shadow-sm">
         <PlaceholderImage
-          seed={listing?.imageSeeds[0] ?? booking.id}
-          iconName={category?.icon}
+          seed={imageSeed}
+          iconName={catIcon}
           className="h-20 w-20 shrink-0"
         />
         <div className="min-w-0 flex-1">
           <Link
-            href={`/product/${listing?.id}`}
+            href={`/product/${booking.listingId}`}
             className="font-medium hover:underline"
           >
-            {listing?.title}
+            {title}
           </Link>
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" /> {listing?.location}
-          </p>
+          {location && (
+            <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5" /> {location}
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
             <span>
               <span className="text-muted-foreground">รับ:</span>{" "}
@@ -146,6 +214,20 @@ export default function BookingDetailPage() {
           >
             <Wallet className="h-4 w-4" /> ชำระเงิน
           </Link>
+        )}
+        {nextStep && (
+          <button
+            onClick={advance}
+            disabled={busy}
+            className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-70 sm:col-span-4"
+          >
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            {nextStep.label}
+          </button>
         )}
         <ActionBtn href="/renter/chat" icon={MessageSquare} label="แชท" />
         <ActionBtn href={`/evidence/${booking.id}`} icon={Camera} label="อัปโหลดหลักฐาน" />

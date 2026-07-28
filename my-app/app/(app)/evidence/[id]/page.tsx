@@ -103,7 +103,7 @@ export default function EvidencePage() {
       </Link>
       <h1 className="text-2xl font-bold tracking-tight">อัปโหลดหลักฐาน</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {listing?.title} · {booking?.id}
+        {booking?.listingTitle ?? listing?.title} · {booking?.id}
       </p>
 
       <div className="mt-5 space-y-5 rounded-xl border bg-card p-5 shadow-sm">

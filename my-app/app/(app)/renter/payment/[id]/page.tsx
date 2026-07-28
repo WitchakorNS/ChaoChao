@@ -76,14 +76,16 @@ export default function PaymentPage() {
       {/* Item */}
       <div className="mt-4 flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm">
         <PlaceholderImage
-          seed={listing?.imageSeeds[0] ?? booking.id}
-          iconName={category?.icon}
+          seed={booking.listingImageSeed ?? listing?.imageSeeds[0] ?? booking.id}
+          iconName={booking.listingCategoryIcon ?? category?.icon}
           className="h-14 w-14"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{listing?.title}</p>
+          <p className="truncate font-medium">
+            {booking.listingTitle ?? listing?.title}
+          </p>
           <p className="text-xs text-muted-foreground">
-            ผู้ให้เช่า: {lender?.name} · {booking.days} วัน
+            ผู้ให้เช่า: {booking.lenderName ?? lender?.name} · {booking.days} วัน
           </p>
         </div>
       </div>
