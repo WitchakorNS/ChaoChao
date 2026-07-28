@@ -1,7 +1,31 @@
-import type { BookingStatus, EvidenceType, KycStatus } from "./mock/types";
+import type { BookingStatus, EvidenceType, KycStatus, User } from "./mock/types";
 
 export const thb = (n: number) =>
   `฿${n.toLocaleString("th-TH", { maximumFractionDigits: 0 })}`;
+
+// Build a display User for people who aren't in the mock catalog (e.g. newly
+// registered DB accounts) so their name + avatar still render on client pages.
+export function synthUser(id: string, name?: string): User {
+  const n = name?.trim() || "ผู้ใช้";
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
+  const parts = n.split(/\s+/);
+  const initials =
+    parts.length >= 2 ? (parts[0][0] ?? "") + (parts[1][0] ?? "") : n.slice(0, 2);
+  return {
+    id,
+    name: n,
+    avatarColor: `${h} 55% 55%`,
+    initials,
+    role: "renter",
+    kyc: "verified",
+    rating: 5,
+    reviewCount: 0,
+    location: "",
+    joinedYear: 2024,
+    responseRate: 95,
+  };
+}
 
 export const formatDate = (iso: string) => {
   if (!iso) return "-";

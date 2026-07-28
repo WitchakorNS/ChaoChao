@@ -118,7 +118,7 @@ export default function CalendarPage() {
                           tone === "muted" && "bg-muted-foreground",
                         )}
                       >
-                        {getListing(b.listingId)?.title.slice(0, 10)}
+                        {(b.listingTitle ?? getListing(b.listingId)?.title ?? "").slice(0, 10)}
                       </div>
                     ))}
                   </div>
@@ -136,17 +136,19 @@ export default function CalendarPage() {
           .filter((b) => b.startDate.startsWith(`${year}-07`) || b.endDate.startsWith(`${year}-07`))
           .map((b) => {
             const listing = getListing(b.listingId);
-            const renter = getUser(b.renterId);
             const meta = bookingStatusMeta[b.status];
+            const title = b.listingTitle ?? listing?.title ?? "สินค้า";
+            const renterName =
+              b.renterName ?? getUser(b.renterId)?.name ?? "ผู้เช่า";
             return (
               <div
                 key={b.id}
                 className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3 shadow-sm"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{listing?.title}</p>
+                  <p className="truncate text-sm font-medium">{title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {renter?.name} · {formatDate(b.startDate)} – {formatDate(b.endDate)}
+                    {renterName} · {formatDate(b.startDate)} – {formatDate(b.endDate)}
                   </p>
                 </div>
                 <StatusChip tone={meta.tone}>{meta.label}</StatusChip>

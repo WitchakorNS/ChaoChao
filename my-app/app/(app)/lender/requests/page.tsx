@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Inbox, Loader2, MessageSquare, X } from "lucide-react";
 import { useDemo } from "@/lib/store";
 import { getListing, getUser, getCategory } from "@/lib/mock/data";
-import { bookingStatusMeta, formatDate, thb } from "@/lib/format";
+import { bookingStatusMeta, formatDate, synthUser, thb } from "@/lib/format";
 import {
   Avatar,
   EmptyState,
@@ -58,17 +58,22 @@ export default function RequestsPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {requests.map((b) => {
-            const renter = getUser(b.renterId);
             const listing = getListing(b.listingId);
             const cat = listing ? getCategory(listing.categoryId) : undefined;
+            // Prefer DB enrichment on the booking; fall back to the mock catalog
+            // so requests for user-created (DB-only) items/renters still render.
+            const renter = getUser(b.renterId) ?? synthUser(b.renterId, b.renterName);
+            const title = b.listingTitle ?? listing?.title ?? "สินค้า";
+            const imageSeed = b.listingImageSeed ?? listing?.imageSeeds[0] ?? b.id;
+            const catIcon = b.listingCategoryIcon ?? cat?.icon;
             const meta = bookingStatusMeta[b.status];
             const pending = b.status === "pending";
             return (
               <div key={b.id} className="rounded-xl border bg-card p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <PlaceholderImage
-                    seed={listing?.imageSeeds[0] ?? b.id}
-                    iconName={cat?.icon}
+                    seed={imageSeed}
+                    iconName={catIcon}
                     className="h-16 w-16 shrink-0"
                   />
                   <div className="min-w-0 flex-1">
@@ -78,9 +83,7 @@ export default function RequestsPage() {
                       </span>
                       <StatusChip tone={meta.tone}>{meta.label}</StatusChip>
                     </div>
-                    <h3 className="mt-0.5 line-clamp-1 font-medium">
-                      {listing?.title}
-                    </h3>
+                    <h3 className="mt-0.5 line-clamp-1 font-medium">{title}</h3>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(b.startDate)} – {formatDate(b.endDate)} · {b.days} วัน
                     </p>

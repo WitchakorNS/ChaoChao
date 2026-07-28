@@ -85,8 +85,10 @@ export default function LenderDashboard() {
         ) : (
           <div className="space-y-3">
             {newRequests.map((b) => {
-              const renter = getUser(b.renterId);
               const listing = listings.find((l) => l.id === b.listingId);
+              const title = b.listingTitle ?? listing?.title ?? "สินค้า";
+              const renterName =
+                b.renterName ?? getUser(b.renterId)?.name ?? "ผู้เช่า";
               return (
                 <Link
                   key={b.id}
@@ -94,9 +96,9 @@ export default function LenderDashboard() {
                   className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4 shadow-sm transition hover:border-accent hover:shadow-md"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{listing?.title}</p>
+                    <p className="truncate font-medium">{title}</p>
                     <p className="text-sm text-muted-foreground">
-                      {renter?.name} · {formatDate(b.startDate)} – {formatDate(b.endDate)}
+                      {renterName} · {formatDate(b.startDate)} – {formatDate(b.endDate)}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
