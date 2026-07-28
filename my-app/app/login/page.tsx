@@ -25,8 +25,16 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? "เข้าสู่ระบบไม่สำเร็จ");
-      // Full navigation so the root layout re-reads the new cookie.
-      window.location.href = "/renter/dashboard";
+      // Land on the dashboard that matches the user's role. Full navigation so
+      // the root layout re-reads the new cookie.
+      const role = body.user?.role;
+      const home =
+        role === "admin"
+          ? "/admin/dashboard"
+          : role === "lender"
+            ? "/lender/dashboard"
+            : "/renter/dashboard";
+      window.location.href = home;
     } catch (err) {
       setError((err as Error).message);
       setLoading(false);

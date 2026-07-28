@@ -339,11 +339,13 @@ export async function createUser(input: UserInput): Promise<string> {
   if (error) throw error;
   const userId = data.user_id as number;
 
+  // Single-role accounts drive the role-based navigation:
+  //   renter -> User, lender -> Shop, both -> User + Shop.
   const roleNames =
     input.role === "both"
       ? ["User", "Shop"]
       : input.role === "lender"
-        ? ["User", "Shop"]
+        ? ["Shop"]
         : ["User"];
   const { data: roles } = await supabase
     .from("role")

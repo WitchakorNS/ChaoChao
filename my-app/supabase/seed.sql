@@ -22,11 +22,13 @@ INSERT INTO user_account (user_id, name, email, password_hash, current_state_id,
   (7, 'แอดมิน CHAOCHAO',   'admin@chaochao.app',   '$2a$10$demoHashDemoHashDemoHa', (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='UserVerificationFlow' AND ws.state_name='Verified'),    '2021-01-01');
 SELECT setval('user_account_user_id_seq', 7, true);
 
+-- Single-role accounts so the UI's role-based navigation is unambiguous:
+--   u_me = renter, somchai/ae/new = lender, mind/joe = renter, admin = admin.
 INSERT INTO user_role (user_id, role_id) VALUES
-  (1, (SELECT role_id FROM role WHERE role_name='User')), (1, (SELECT role_id FROM role WHERE role_name='Shop')),
-  (2, (SELECT role_id FROM role WHERE role_name='User')), (2, (SELECT role_id FROM role WHERE role_name='Shop')),
-  (3, (SELECT role_id FROM role WHERE role_name='User')), (3, (SELECT role_id FROM role WHERE role_name='Shop')),
-  (4, (SELECT role_id FROM role WHERE role_name='User')), (4, (SELECT role_id FROM role WHERE role_name='Shop')),
+  (1, (SELECT role_id FROM role WHERE role_name='User')),
+  (2, (SELECT role_id FROM role WHERE role_name='Shop')),
+  (3, (SELECT role_id FROM role WHERE role_name='Shop')),
+  (4, (SELECT role_id FROM role WHERE role_name='Shop')),
   (5, (SELECT role_id FROM role WHERE role_name='User')),
   (6, (SELECT role_id FROM role WHERE role_name='User')),
   (7, (SELECT role_id FROM role WHERE role_name='Admin'));
@@ -45,9 +47,9 @@ INSERT INTO item (item_id, owner_id, item_name, item_description, price, deposit
   (8, 3, 'โต๊ะพับอเนกประสงค์สำหรับอีเวนต์ (ชุด 4 ตัว)', 'โต๊ะพับน้ำหนักเบา แข็งแรง เหมาะสำหรับออกบูธ งานเลี้ยง หรือกิจกรรมกลางแจ้ง ชุดละ 4 ตัว', 220, 1000, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Published'), 'event', '2024-02-01'),
   (9, 5, 'สว่านไร้สาย Makita พร้อมชุดดอกสว่าน', 'สว่านไฟฟ้าไร้สายกำลังสูง พร้อมแบต 2 ก้อนและชุดดอกสว่านครบชุด เหมาะสำหรับงานช่างทั่วไป', 200, 2500, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Published'), 'tools', '2024-02-01'),
   (10, 4, 'จักรยานเสือภูเขา Trek ไซซ์ M', 'จักรยานเสือภูเขา 21 สปีด สภาพดี เหมาะสำหรับปั่นเที่ยวและออกกำลังกาย พร้อมหมวกกันน็อก', 260, 3500, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Published'), 'sport', '2024-02-01'),
-  (11, 1, 'ชุดไฟ LED Panel พร้อมขาตั้ง 2 ดวง', 'ไฟ LED Panel ปรับอุณหภูมิสีได้ พร้อมขาตั้งและอะแดปเตอร์ เหมาะสำหรับถ่ายภาพ วิดีโอ และไลฟ์สด', 320, 3000, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Published'), 'camera', '2024-03-01'),
-  (12, 1, 'ไมค์บูมพร้อมขาตั้งสำหรับบันทึกเสียง', 'ไมโครโฟนช็อตกันพร้อมบูมและขาตั้ง เหมาะสำหรับงานถ่ายทำและพอดแคสต์ ให้เสียงคมชัด', 240, 2000, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Rented'), 'live', '2024-03-01'),
-  (13, 1, 'กระเป๋ากล้องกันกระแทกขนาดใหญ่', 'กระเป๋าเป้ใส่กล้องและเลนส์ กันกระแทกและกันน้ำ มีช่องแบ่งปรับได้ เหมาะสำหรับเดินทางถ่ายงาน', 120, 800, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Removed'), 'travel', '2024-03-01');
+  (11, 2, 'ชุดไฟ LED Panel พร้อมขาตั้ง 2 ดวง', 'ไฟ LED Panel ปรับอุณหภูมิสีได้ พร้อมขาตั้งและอะแดปเตอร์ เหมาะสำหรับถ่ายภาพ วิดีโอ และไลฟ์สด', 320, 3000, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Published'), 'camera', '2024-03-01'),
+  (12, 2, 'ไมค์บูมพร้อมขาตั้งสำหรับบันทึกเสียง', 'ไมโครโฟนช็อตกันพร้อมบูมและขาตั้ง เหมาะสำหรับงานถ่ายทำและพอดแคสต์ ให้เสียงคมชัด', 240, 2000, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Rented'), 'live', '2024-03-01'),
+  (13, 2, 'กระเป๋ากล้องกันกระแทกขนาดใหญ่', 'กระเป๋าเป้ใส่กล้องและเลนส์ กันกระแทกและกันน้ำ มีช่องแบ่งปรับได้ เหมาะสำหรับเดินทางถ่ายงาน', 120, 800, (SELECT ws.state_id FROM workflow_state ws JOIN workflow_definition wd ON ws.workflow_id=wd.workflow_id WHERE wd.workflow_name='ItemFlow' AND ws.state_name='Removed'), 'travel', '2024-03-01');
 SELECT setval('item_item_id_seq', 13, true);
 
 INSERT INTO item_image (item_id, image_url) VALUES

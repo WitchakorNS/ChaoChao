@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   Compass,
@@ -14,16 +14,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDemo, type Persona } from "@/lib/store";
-import {
-  personaHome,
-  personaLabel,
-  personaNav,
-} from "./nav-config";
+import { personaHome, personaNav } from "./nav-config";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { Avatar } from "./primitives";
 
-const PERSONAS: Persona[] = ["renter", "lender", "admin"];
+// Only these path prefixes are role-gated; everything else (home, explore,
+// product, profile, settings, kyc, notifications, saved) is shared.
+const ROLE_SECTIONS = ["/renter", "/lender", "/admin"];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -33,20 +31,23 @@ function isActive(pathname: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { persona, setPersona, unreadCount, me } = useDemo();
+  const { persona, unreadCount, me } = useDemo();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [query, setQuery] = useState("");
   const nav = personaNav[persona];
 
+  // Role guard: if the user opens a section that isn't theirs, send them to
+  // their own dashboard (role-based access).
+  useEffect(() => {
+    const section = ROLE_SECTIONS.find((s) => pathname.startsWith(s));
+    if (section && section !== `/${persona}`) {
+      router.replace(personaHome[persona]);
+    }
+  }, [pathname, persona, router]);
+
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     router.push(query ? `/explore?q=${encodeURIComponent(query)}` : "/explore");
-  };
-
-  const handlePersona = (p: Persona) => {
-    setPersona(p);
-    setMobileMenu(false);
-    router.push(personaHome[p]);
   };
 
   return (
@@ -83,12 +84,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               ค้นหาอุปกรณ์
             </Link>
-            <Link
-              href="/lender/listings/new"
-              className="mr-1 hidden h-9 items-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition hover:brightness-105 sm:inline-flex"
-            >
-              ปล่อยเช่า
-            </Link>
+            {persona === "lender" && (
+              <Link
+                href="/lender/listings/new"
+                className="mr-1 hidden h-9 items-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition hover:brightness-105 sm:inline-flex"
+              >
+                ปล่อยเช่า
+              </Link>
+            )}
             <ThemeToggle />
             <Link
               href="/notifications"
@@ -112,8 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto flex max-w-7xl">
         {/* Desktop sidebar */}
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col border-r px-3 py-5 lg:flex">
-          <PersonaSwitcher persona={persona} onChange={handlePersona} />
-          <nav className="mt-5 flex flex-1 flex-col gap-1">
+          <nav className="flex flex-1 flex-col gap-1">
             {nav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -167,7 +169,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <PersonaSwitcher persona={persona} onChange={handlePersona} />
             <nav className="mt-4 flex flex-col gap-1">
               {nav.map((item) => (
                 <Link
@@ -234,37 +235,6 @@ function SidebarLink({
   );
 }
 
-function PersonaSwitcher({
-  persona,
-  onChange,
-}: {
-  persona: Persona;
-  onChange: (p: Persona) => void;
-}) {
-  return (
-    <div>
-      <p className="mb-1.5 px-1 text-xs font-medium text-muted-foreground">
-        มุมมองการใช้งาน
-      </p>
-      <div className="flex rounded-lg bg-muted p-1">
-        {PERSONAS.map((p) => (
-          <button
-            key={p}
-            onClick={() => onChange(p)}
-            className={cn(
-              "flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition",
-              persona === p
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {personaLabel[p]}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function MobileBottomNav({
   pathname,

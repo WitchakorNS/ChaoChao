@@ -69,7 +69,12 @@ export function DemoStoreProvider({
 }) {
   const userId = currentUserId ?? CURRENT_USER_ID;
   const me = currentUserProp ?? getUser(CURRENT_USER_ID)!;
-  const [persona, setPersona] = useState<Persona>("renter");
+  // Persona is derived from the logged-in user's role (no manual switcher).
+  const rolePersona: Persona =
+    me.role === "admin" ? "admin" : me.role === "lender" ? "lender" : "renter";
+  const [persona, setPersona] = useState<Persona>(rolePersona);
+  // Keep persona in sync if the logged-in user changes (after router.refresh).
+  useEffect(() => setPersona(rolePersona), [rolePersona]);
   const [bookings, setBookings] = useState<Booking[]>(() =>
     (initialBookings && initialBookings.length
       ? initialBookings
