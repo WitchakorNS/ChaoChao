@@ -65,15 +65,17 @@ Copy the sample to `.env.local` (git-ignored — never commit it):
 cp .env.sample .env.local
 ```
 
-`.env.sample` is already filled with the **standard local Supabase CLI values**
-(identical on every machine), so this works out of the box. If `supabase start`
-printed different keys, paste those in instead.
+`.env.sample` ships with **placeholders**, not real keys. Open `.env.local` and
+paste in the values that `npx supabase start` printed in step 1 (the **anon
+key** and the **service_role key**). The local URL is already filled in.
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL (`http://127.0.0.1:54321` locally) |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | anon/publishable key — reads (SELECT only) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **server-only** key for writes (create/edit/booking/review…). No `NEXT_PUBLIC_` prefix, so it's never sent to the browser |
+| Variable | Where to get it | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | `supabase start` → `API URL` | Supabase API URL (`http://127.0.0.1:54321` locally) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `supabase start` → `anon key` | reads (SELECT only) |
+| `SUPABASE_SERVICE_ROLE_KEY` | `supabase start` → `service_role key` | **server-only** key for writes (create/edit/booking/review…). No `NEXT_PUBLIC_` prefix, so it's never sent to the browser |
+
+> Lost the output? Re-print it any time with `npx supabase status`.
 
 > Already have a working `.env.local`? You can skip the copy — it would overwrite
 > your file. **Writes require `SUPABASE_SERVICE_ROLE_KEY`**, so make sure that
